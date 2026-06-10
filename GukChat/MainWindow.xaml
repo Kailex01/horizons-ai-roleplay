@@ -1,0 +1,439 @@
+<Window x:Class="GukChat.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        Title="GukChat"
+        Width="1000" Height="680"
+        MinWidth="750" MinHeight="500"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="#0F1923"
+        WindowStartupLocation="CenterScreen">
+
+    <!-- WindowChrome: gives us full-edge resize + custom title bar on a borderless window -->
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome ResizeBorderThickness="5"
+                            CaptionHeight="0"
+                            GlassFrameThickness="0"
+                            CornerRadius="0"/>
+    </shell:WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <!-- Reusable title-bar button style -->
+        <Style x:Key="TitleBtn" TargetType="Button">
+            <Setter Property="Background"      Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground"      Value="#7A8B9A"/>
+            <Setter Property="FontSize"        Value="13"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Width="38" Height="32">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#1E2D3D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="CloseTitleBtn" TargetType="Button" BasedOn="{StaticResource TitleBtn}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#5C1A1A"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Flat ListBox item -->
+        <Style x:Key="CharListItem" TargetType="ListBoxItem">
+            <Setter Property="Padding"                    Value="0"/>
+            <Setter Property="Margin"                     Value="0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Background"                 Value="Transparent"/>
+            <Setter Property="BorderThickness"            Value="0"/>
+            <Setter Property="Cursor"                     Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListBoxItem">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="#C8A020"
+                                BorderThickness="3,0,0,0"
+                                Padding="10,8">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderThickness" Value="0,0,0,0"/>
+                                </Style>
+                            </Border.Style>
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background"       Value="#1A2E40"/>
+                                <Setter TargetName="Bd" Property="BorderThickness"  Value="3,0,0,0"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected"  Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Bd" Property="Background" Value="#111E2A"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Send / action button -->
+        <Style x:Key="ActionBtn" TargetType="Button">
+            <Setter Property="Background"      Value="#8B6000"/>
+            <Setter Property="Foreground"      Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="4">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       FontSize="14"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#A87800"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#6A4800"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Background" Value="#3A2A00"/>
+                                <Setter Property="Foreground" Value="#6A5A30"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Voice toggle button -->
+        <Style x:Key="VoiceToggleBtn" TargetType="ToggleButton">
+            <Setter Property="Background"      Value="#0A1018"/>
+            <Setter Property="Foreground"      Value="#4A6070"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush"     Value="#1E3A50"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <TextBlock Text="{TemplateBinding Content}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       FontSize="16"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Bd" Property="Background"   Value="#1A3A2A"/>
+                                <Setter TargetName="Bd" Property="BorderBrush"  Value="#2A8040"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background"   Value="#111E2A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- Title bar — the whole bar is a drag handle; buttons override that  -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="0" Background="#080E14"
+              MouseLeftButtonDown="TitleBar_Drag">
+            <TextBlock Text="GUKTOWN CHAT"
+                       Foreground="#C8A020" FontSize="10" FontWeight="Bold"
+                       VerticalAlignment="Center" Margin="14,0"/>
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal"
+                        Margin="0,0,0,0" VerticalAlignment="Center">
+                <Button Content="─" Style="{StaticResource TitleBtn}" Click="Minimize_Click"
+                        ToolTip="Minimize"/>
+                <Button Content="⬜" Style="{StaticResource TitleBtn}" Click="MaxRestore_Click"
+                        ToolTip="Maximize / Restore" x:Name="MaxBtn"/>
+                <Button Content="✕" Style="{StaticResource CloseTitleBtn}" Click="Close_Click"
+                        ToolTip="Close"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <!-- Main layout: sidebar | splitter | chat area                        -->
+        <!-- ═══════════════════════════════════════════════════════════════════ -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" MinWidth="160" MaxWidth="360"/>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"   MinWidth="400"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Drag to resize sidebar ↔ chat -->
+            <GridSplitter Grid.Column="1"
+                          Width="4"
+                          Background="#1E3A50"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          ResizeBehavior="PreviousAndNext"
+                          Cursor="SizeWE"/>
+
+            <!-- ─────────────────────────────────────────────────────────────── -->
+            <!-- SIDEBAR                                                         -->
+            <!-- ─────────────────────────────────────────────────────────────── -->
+            <Grid Grid.Column="0" Background="#0A1018">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="44"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="#080E14"
+                        BorderBrush="#1E3A50" BorderThickness="0,0,0,1">
+                    <TextBlock Text="CHARACTERS"
+                               Foreground="#C8A020" FontSize="9" FontWeight="Bold"
+                               VerticalAlignment="Center" Margin="14,0"/>
+                </Border>
+
+                <ListBox Grid.Row="1"
+                         ItemsSource="{Binding Characters}"
+                         SelectedItem="{Binding SelectedCharacter}"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ItemContainerStyle="{StaticResource CharListItem}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="44"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <!-- Portrait thumbnail or placeholder -->
+                                <Border Width="36" Height="36" CornerRadius="18"
+                                        Background="#1E3A50" ClipToBounds="True"
+                                        HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Image Source="{Binding Portrait}" Stretch="UniformToFill"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="6,0,0,0">
+                                    <TextBlock Text="{Binding DisplayName}"
+                                               Foreground="#D4C5A0" FontSize="12" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding CategoryBadge}"
+                                               Foreground="#4A6070" FontSize="9"/>
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+
+            <!-- ─────────────────────────────────────────────────────────────── -->
+            <!-- CHAT AREA                                                       -->
+            <!-- ─────────────────────────────────────────────────────────────── -->
+            <Grid Grid.Column="2" Background="#0F1923">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="68"/>    <!-- character header        -->
+                    <RowDefinition Height="*"/>     <!-- message list            -->
+                    <RowDefinition Height="Auto"/>  <!-- status bar              -->
+                    <RowDefinition Height="60"/>    <!-- input bar               -->
+                </Grid.RowDefinitions>
+
+                <!-- Character header -->
+                <Border Grid.Row="0"
+                        Background="#0A1018"
+                        BorderBrush="#1E3A50" BorderThickness="0,0,0,1">
+                    <Grid Margin="14,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="52"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Width="44" Height="44" CornerRadius="22"
+                                Background="#1E3A50" ClipToBounds="True"
+                                VerticalAlignment="Center">
+                            <Image Source="{Binding ActivePortrait}" Stretch="UniformToFill"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0">
+                            <TextBlock Text="{Binding ActiveCharacterName}"
+                                       Foreground="#D4C5A0" FontSize="15" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding ActiveCategoryBadge}"
+                                       Foreground="#4A6070" FontSize="9"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Message list -->
+                <ScrollViewer Grid.Row="1"
+                              x:Name="MessagesScroll"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              Padding="12,8,12,4">
+                    <ItemsControl ItemsSource="{Binding Messages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,5">
+                                    <!-- ── Player bubble (right) ── -->
+                                    <Border HorizontalAlignment="Right"
+                                            MaxWidth="520"
+                                            Background="#1A3A2A"
+                                            CornerRadius="12,12,0,12"
+                                            Padding="12,8"
+                                            Visibility="{Binding IsPlayer, Converter={StaticResource BoolToVis}}">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Text}"
+                                                       Foreground="#A8D8B0"
+                                                       FontSize="13"
+                                                       TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding TimeStr}"
+                                                       Foreground="#4A6070"
+                                                       FontSize="9"
+                                                       HorizontalAlignment="Right"
+                                                       Margin="0,4,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- ── Character bubble (left, with portrait) ── -->
+                                    <Grid HorizontalAlignment="Left"
+                                          MaxWidth="580"
+                                          Visibility="{Binding IsCharacter, Converter={StaticResource BoolToVis}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="40"/>
+                                            <ColumnDefinition Width="8"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="36" Height="36"
+                                                CornerRadius="18"
+                                                Background="#1E3A50"
+                                                ClipToBounds="True"
+                                                VerticalAlignment="Top"
+                                                Margin="0,2,0,0">
+                                            <Image Source="{Binding Portrait}" Stretch="UniformToFill"/>
+                                        </Border>
+                                        <Border Grid.Column="2"
+                                                Background="#111E2A"
+                                                CornerRadius="0,12,12,12"
+                                                Padding="12,8">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding SenderName}"
+                                                           Foreground="#C8A020"
+                                                           FontSize="10" FontWeight="Bold"
+                                                           Margin="0,0,0,3"/>
+                                                <TextBlock Text="{Binding Text}"
+                                                           Foreground="#D4C5A0"
+                                                           FontSize="13"
+                                                           TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding TimeStr}"
+                                                           Foreground="#4A6070"
+                                                           FontSize="9"
+                                                           HorizontalAlignment="Left"
+                                                           Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Status text (thinking…, errors) -->
+                <TextBlock Grid.Row="2"
+                           Text="{Binding StatusText}"
+                           Foreground="#4A6070" FontSize="11"
+                           Margin="16,4,16,2"
+                           Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}"/>
+
+                <!-- Input bar -->
+                <Border Grid.Row="3"
+                        Background="#0A1018"
+                        BorderBrush="#1E3A50" BorderThickness="0,1,0,0">
+                    <Grid Margin="12,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="44"/>
+                            <ColumnDefinition Width="6"/>
+                            <ColumnDefinition Width="44"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0"
+                                Background="#111E2A"
+                                CornerRadius="4"
+                                BorderBrush="#1E3A50" BorderThickness="1">
+                            <TextBox x:Name="InputBox"
+                                     Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                                     Background="Transparent"
+                                     BorderThickness="0"
+                                     Foreground="#D4C5A0"
+                                     FontSize="13"
+                                     Padding="10,7"
+                                     VerticalAlignment="Center"
+                                     CaretBrush="#C8A020"
+                                     SelectionBrush="#C8A02040"
+                                     IsEnabled="{Binding HasActiveCharacter}"
+                                     KeyDown="InputBox_KeyDown">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Style.Resources>
+                                            <Style TargetType="ScrollViewer">
+                                                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ScrollViewer">
+                                                            <ScrollContentPresenter/>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </Style.Resources>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </Border>
+
+                        <!-- Voice toggle -->
+                        <ToggleButton Grid.Column="2"
+                                      Content="🔊"
+                                      Style="{StaticResource VoiceToggleBtn}"
+                                      IsChecked="{Binding IsVoiceEnabled}"
+                                      ToolTip="Toggle voice (Piper TTS)"/>
+
+                        <!-- Send -->
+                        <Button Grid.Column="4"
+                                Content="▶"
+                                Style="{StaticResource ActionBtn}"
+                                Command="{Binding SendCommand}"
+                                ToolTip="Send (Enter)"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>
