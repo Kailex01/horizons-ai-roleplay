@@ -505,8 +505,8 @@ public class MainViewModel : INotifyPropertyChanged
         StatusText = "";
         OnPropertyChanged(nameof(CanRegenerate));
 
-        if (IsVoiceEnabled)
-            _ = PiperService.SpeakLinesAsync(lines, charItem.DisplayName, charItem.Character.VoiceModel);
+        if (IsVoiceEnabled && charItem.Character.VoiceProfile.IsEnabled)
+            _ = Task.CompletedTask; // KokoroService.SpeakAsync — wired in Kokoro step 3
 
         AutoSave(key);
         if (Messages.Count > SummarizeThreshold)
@@ -532,7 +532,7 @@ public class MainViewModel : INotifyPropertyChanged
 
         var portraitMap = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Portrait);
         var fileMap     = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.Portrait);
-        var voiceMap    = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.VoiceModel);
+        var profileMap  = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.VoiceProfile);
 
         foreach (var (name, msg) in replies)
         {
@@ -558,8 +558,9 @@ public class MainViewModel : INotifyPropertyChanged
             {
                 foreach (var (name, msg) in replies)
                 {
-                    voiceMap.TryGetValue(name, out var vm);
-                    await PiperService.SpeakLinesAsync([msg], name, vm);
+                    profileMap.TryGetValue(name, out var profile);
+                    if (profile?.IsEnabled == true)
+                        await Task.CompletedTask; // KokoroService.SpeakAsync — wired in Kokoro step 3
                 }
             });
         }

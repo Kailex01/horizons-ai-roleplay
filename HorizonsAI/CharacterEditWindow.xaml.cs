@@ -29,7 +29,6 @@ public partial class CharacterEditWindow : Window
         CategoryBox.Text   = _character.Category;
         PromptBox.Text     = _character.SystemPrompt;
         ModelBox.Text      = _character.Model;
-        VoiceModelBox.Text = _character.VoiceModel ?? "";
         EnabledBox.IsChecked = _character.Enabled;
 
         if (_character.Portrait != null)
@@ -78,7 +77,6 @@ public partial class CharacterEditWindow : Window
         _character.Category     = (CategoryBox.Text ?? "npcs").Trim().ToLowerInvariant().Replace(' ', '_');
         _character.SystemPrompt = PromptBox.Text.Trim();
         _character.Model        = ModelBox.Text.Trim();
-        _character.VoiceModel   = string.IsNullOrWhiteSpace(VoiceModelBox.Text) ? null : VoiceModelBox.Text.Trim();
         _character.Enabled      = EnabledBox.IsChecked ?? true;
 
         // Import portrait if one was picked
