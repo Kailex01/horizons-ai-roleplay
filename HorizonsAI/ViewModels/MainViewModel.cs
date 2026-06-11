@@ -8,6 +8,10 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly HttpClient        _http   = new() { Timeout = TimeSpan.FromSeconds(60) };
     private readonly OpenRouterService _openRouter;
     private readonly Dictionary<string, ObservableCollection<ChatMessage>> _conversations = new();
+    private readonly Dictionary<string, string> _memory = new();
+
+    private const int SummarizeThreshold = 40;
+    private const int KeepRecentCount    = 20;
 
     // ── Sidebar ────────────────────────────────────────────────────────────────
 
@@ -195,9 +199,9 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void LoadCharacters()
     {
-        var previousCharId  = _selectedCharacter?.Character.Id;
+        var previousCharId   = _selectedCharacter?.Character.Id;
         var previousPlayAsId = _playAsCharacter?.Character.Id;
-        var allChars        = CharacterService.LoadAll();
+        var allChars         = CharacterService.LoadAll();
 
         Categories.Clear();
 
@@ -212,14 +216,12 @@ public class MainViewModel : INotifyPropertyChanged
         _allCharactersFlat = Categories.SelectMany(g => g.Characters).ToList();
         OnPropertyChanged(nameof(AllCharactersFlat));
 
-        // Restore character selection
         if (previousCharId != null)
         {
             var match = _allCharactersFlat.FirstOrDefault(i => i.Character.Id == previousCharId);
             if (match != null) SelectedCharacter = match;
         }
 
-        // Restore play-as selection (or clear if the character was deleted)
         PlayAsCharacter = previousPlayAsId != null
             ? _allCharactersFlat.FirstOrDefault(i => i.Character.Id == previousPlayAsId)
             : null;
@@ -228,13 +230,16 @@ public class MainViewModel : INotifyPropertyChanged
             ? "No characters yet — click [+] to add one."
             : "";
 
-        // Refresh party member references against the new CharacterItem instances
         LoadParties();
     }
 
     public void DeleteCharacter(CharacterItem item)
     {
+        var key = item.Character.Id;
         CharacterService.Delete(item.Character);
+        ChatLogService.Delete(key);
+        _conversations.Remove(key);
+        _memory.Remove(key);
         if (SelectedCharacter == item) SelectedCharacter = null;
         LoadCharacters();
     }
@@ -254,7 +259,6 @@ public class MainViewModel : INotifyPropertyChanged
             Parties.Add(item);
         }
 
-        // Restore party selection
         if (prevId != null)
         {
             var match = Parties.FirstOrDefault(p => p.Party.Id == prevId);
@@ -269,7 +273,11 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void DeleteParty(PartyItem item)
     {
+        var key = $"party_{item.Party.Id}";
         PartyService.Delete(item.Party);
+        ChatLogService.Delete(key);
+        _conversations.Remove(key);
+        _memory.Remove(key);
         if (SelectedParty == item) SelectedParty = null;
         LoadParties();
     }
@@ -280,15 +288,43 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void SwitchConversation()
     {
-        var key = _selectedCharacter?.Character.Id
-                  ?? (_selectedParty != null ? $"party_{_selectedParty.Party.Id}" : null);
+        var key = ConversationKey();
         if (key is null) return;
+
         if (!_conversations.ContainsKey(key))
-            _conversations[key] = new ObservableCollection<ChatMessage>();
+            LoadConversationFromDisk(key);
+
         Messages   = _conversations[key];
         StatusText = "";
         ScrollToBottom?.Invoke();
     }
+
+    private void LoadConversationFromDisk(string key)
+    {
+        var state = ChatLogService.Load(key);
+        _memory[key] = state.Memory ?? "";
+
+        var loaded = new ObservableCollection<ChatMessage>();
+        foreach (var dto in state.Messages)
+        {
+            loaded.Add(new ChatMessage
+            {
+                Text         = dto.Text,
+                IsPlayer     = dto.IsPlayer,
+                IsSummary    = dto.IsSummary,
+                SenderName   = dto.SenderName,
+                PortraitFile = dto.PortraitFile,
+                Portrait     = !string.IsNullOrEmpty(dto.PortraitFile)
+                               ? PortraitService.Load(dto.PortraitFile) : null,
+                Timestamp    = dto.Timestamp,
+            });
+        }
+        _conversations[key] = loaded;
+    }
+
+    private string? ConversationKey()
+        => _selectedCharacter?.Character.Id
+           ?? (_selectedParty != null ? $"party_{_selectedParty.Party.Id}" : null);
 
     // ── Send message ───────────────────────────────────────────────────────────
 
@@ -296,26 +332,30 @@ public class MainViewModel : INotifyPropertyChanged
     {
         if (string.IsNullOrWhiteSpace(InputText)) return;
 
+        var key = ConversationKey();
+        if (key is null) return;
+
         var text = InputText.Trim();
         InputText = "";
         IsSending = true;
 
         Messages.Add(new ChatMessage
         {
-            Text       = text,
-            IsPlayer   = true,
-            SenderName = PlayAsName,
-            Portrait   = PlayAsPortrait,
-            Timestamp  = DateTime.Now,
+            Text         = text,
+            IsPlayer     = true,
+            SenderName   = PlayAsName,
+            Portrait     = PlayAsPortrait,
+            PortraitFile = _playAsCharacter?.Character.Portrait,
+            Timestamp    = DateTime.Now,
         });
         ScrollToBottom?.Invoke();
 
         try
         {
             if (_selectedCharacter != null)
-                await SendToCharacterAsync(_selectedCharacter, text);
+                await SendToCharacterAsync(_selectedCharacter, key, text);
             else if (_selectedParty != null)
-                await SendToPartyAsync(_selectedParty, text);
+                await SendToPartyAsync(_selectedParty, key, text);
         }
         catch (Exception ex)
         {
@@ -327,51 +367,71 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    private async Task SendToCharacterAsync(CharacterItem charItem, string text)
+    private async Task SendToCharacterAsync(CharacterItem charItem, string key, string text)
     {
         StatusText = $"{charItem.DisplayName} is thinking…";
-        var lines      = await _openRouter.ChatAsync(charItem.Character, Messages.SkipLast(0), text, _playAsCharacter?.Character);
-        var charName   = charItem.DisplayName;
-        var voiceModel = charItem.Character.VoiceModel;
+
+        var memory = GetMemory(key);
+        var lines  = await _openRouter.ChatAsync(
+            charItem.Character,
+            Messages.SkipLast(0),
+            text,
+            _playAsCharacter?.Character,
+            memory);
 
         foreach (var line in lines)
         {
             Messages.Add(new ChatMessage
             {
-                Text       = line,
-                IsPlayer   = false,
-                SenderName = charName,
-                Portrait   = charItem.Portrait,
-                Timestamp  = DateTime.Now,
+                Text         = line,
+                IsPlayer     = false,
+                SenderName   = charItem.DisplayName,
+                Portrait     = charItem.Portrait,
+                PortraitFile = charItem.Character.Portrait,
+                Timestamp    = DateTime.Now,
             });
         }
         ScrollToBottom?.Invoke();
         StatusText = "";
 
         if (IsVoiceEnabled)
-            _ = PiperService.SpeakLinesAsync(lines, charName, voiceModel);
+            _ = PiperService.SpeakLinesAsync(lines, charItem.DisplayName, charItem.Character.VoiceModel);
+
+        AutoSave(key);
+        if (Messages.Count > SummarizeThreshold)
+            await TrySummarizeAsync(key);
     }
 
-    private async Task SendToPartyAsync(PartyItem partyItem, string text)
+    private async Task SendToPartyAsync(PartyItem partyItem, string key, string text)
     {
         StatusText = $"{partyItem.DisplayName} is responding…";
 
+        var memory   = GetMemory(key);
         var members  = partyItem.Members.Select(m => m.Character);
-        var replies  = await _openRouter.ChatPartyAsync(partyItem.Party, members, Messages.SkipLast(0), text, _playAsCharacter?.Character);
+        var replies  = await _openRouter.ChatPartyAsync(
+            partyItem.Party,
+            members,
+            Messages.SkipLast(0),
+            text,
+            _playAsCharacter?.Character,
+            memory);
 
         var portraitMap = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Portrait);
+        var fileMap     = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.Portrait);
         var voiceMap    = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.VoiceModel);
 
         foreach (var (name, msg) in replies)
         {
             portraitMap.TryGetValue(name, out var portrait);
+            fileMap.TryGetValue(name, out var portraitFile);
             Messages.Add(new ChatMessage
             {
-                Text       = msg,
-                IsPlayer   = false,
-                SenderName = name,
-                Portrait   = portrait,
-                Timestamp  = DateTime.Now,
+                Text         = msg,
+                IsPlayer     = false,
+                SenderName   = name,
+                Portrait     = portrait,
+                PortraitFile = portraitFile,
+                Timestamp    = DateTime.Now,
             });
         }
         ScrollToBottom?.Invoke();
@@ -388,6 +448,80 @@ public class MainViewModel : INotifyPropertyChanged
                 }
             });
         }
+
+        AutoSave(key);
+        if (Messages.Count > SummarizeThreshold)
+            await TrySummarizeAsync(key);
+    }
+
+    // ── Persistence ────────────────────────────────────────────────────────────
+
+    private void AutoSave(string key)
+    {
+        if (!_conversations.TryGetValue(key, out var msgs)) return;
+        _memory.TryGetValue(key, out var memory);
+
+        var state = new ConversationState
+        {
+            Memory   = string.IsNullOrEmpty(memory) ? null : memory,
+            Messages = msgs.Select(m => new ChatMessageDto
+            {
+                Text         = m.Text,
+                IsPlayer     = m.IsPlayer,
+                IsSummary    = m.IsSummary,
+                SenderName   = m.SenderName,
+                PortraitFile = m.PortraitFile,
+                Timestamp    = m.Timestamp,
+            }).ToList()
+        };
+
+        ChatLogService.Save(key, state);
+    }
+
+    // ── Summarization ──────────────────────────────────────────────────────────
+
+    private async Task TrySummarizeAsync(string key)
+    {
+        if (!_conversations.TryGetValue(key, out var msgs)) return;
+        if (msgs.Count <= SummarizeThreshold) return;
+
+        var toSummarize = msgs.Take(msgs.Count - KeepRecentCount).ToList();
+        _memory.TryGetValue(key, out var existingMemory);
+
+        try
+        {
+            StatusText = "Condensing earlier conversation…";
+            var summary = await _openRouter.SummarizeAsync(toSummarize, existingMemory);
+            if (string.IsNullOrWhiteSpace(summary)) return;
+
+            _memory[key] = summary;
+
+            // Remove summarized messages from the observable collection
+            for (int i = 0; i < toSummarize.Count; i++)
+                msgs.RemoveAt(0);
+
+            // Insert a visible marker so the user knows context was condensed
+            msgs.Insert(0, new ChatMessage
+            {
+                IsSummary  = true,
+                SenderName = "Memory",
+                Text       = summary,
+                Timestamp  = DateTime.Now,
+            });
+
+            AutoSave(key);
+        }
+        catch { /* summarization failure is non-fatal */ }
+        finally
+        {
+            StatusText = "";
+        }
+    }
+
+    private string? GetMemory(string key)
+    {
+        _memory.TryGetValue(key, out var m);
+        return string.IsNullOrEmpty(m) ? null : m;
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

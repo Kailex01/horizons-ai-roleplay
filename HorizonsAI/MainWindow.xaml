@@ -514,6 +514,21 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid Margin="0,5">
+                                    <!-- Memory summary marker -->
+                                    <Border HorizontalAlignment="Stretch"
+                                            Visibility="{Binding IsSummary, Converter={StaticResource BoolToVis}}">
+                                        <StackPanel>
+                                            <Border Background="#080E14" CornerRadius="4"
+                                                    HorizontalAlignment="Center" Padding="14,5"
+                                                    ToolTip="{Binding Text}">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="📚" FontSize="10" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Earlier conversation condensed into memory"
+                                                               Foreground="#4A6070" FontSize="10" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </StackPanel>
+                                    </Border>
                                     <!-- Player bubble -->
                                     <Grid HorizontalAlignment="Right" MaxWidth="560"
                                           Visibility="{Binding IsPlayer, Converter={StaticResource BoolToVis}}">

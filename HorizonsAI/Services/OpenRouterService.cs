@@ -13,14 +13,14 @@ public class OpenRouterService
 
     // ── Single character chat ──────────────────────────────────────────────────
 
-    public async Task<List<string>> ChatAsync(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs = null)
+    public async Task<List<string>> ChatAsync(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs = null, string? memory = null)
     {
         var apiKey = AppConfig.Current.OpenRouterApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
             return ["(No OpenRouter API key set — open Settings to add one.)"];
 
         var model    = string.IsNullOrWhiteSpace(character.Model) ? AppConfig.Current.DefaultModel : character.Model;
-        var messages = BuildSingleMessages(character, history, userMessage, playAs);
+        var messages = BuildSingleMessages(character, history, userMessage, playAs, memory);
         var text     = await SendAsync(model, messages);
 
         if (string.IsNullOrEmpty(text)) return ["…"];
@@ -38,7 +38,8 @@ public class OpenRouterService
         IEnumerable<Character> members,
         IEnumerable<ChatMessage> history,
         string userMessage,
-        Character? playAs = null)
+        Character? playAs = null,
+        string? memory = null)
     {
         var apiKey = AppConfig.Current.OpenRouterApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -46,7 +47,7 @@ public class OpenRouterService
 
         var memberList = members.ToList();
         var model      = AppConfig.Current.DefaultModel;
-        var messages   = BuildPartyMessages(party, memberList, history, userMessage, playAs);
+        var messages   = BuildPartyMessages(party, memberList, history, userMessage, playAs, memory);
         var text       = await SendAsync(model, messages);
 
         if (string.IsNullOrEmpty(text)) return [("", "…")];
@@ -88,9 +89,33 @@ public class OpenRouterService
         return result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? "";
     }
 
-    private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs)
+    public async Task<string> SummarizeAsync(IEnumerable<ChatMessage> messages, string? existingMemory)
+    {
+        var apiKey = AppConfig.Current.OpenRouterApiKey;
+        if (string.IsNullOrWhiteSpace(apiKey)) return "";
+
+        var lines = string.Join("\n", messages
+            .Where(m => !m.IsSummary)
+            .Select(m => $"{m.SenderName}: {m.Text}"));
+
+        var content = string.IsNullOrEmpty(existingMemory)
+            ? lines
+            : $"Previous summary:\n{existingMemory}\n\nNew messages:\n{lines}";
+
+        var apiMessages = new List<object>
+        {
+            new { role = "system", content = "Summarize this roleplay conversation into 2-3 sentences, capturing key events, relationships, and important context established. Be concise." },
+            new { role = "user",   content }
+        };
+
+        return await SendAsync(AppConfig.Current.DefaultModel, apiMessages);
+    }
+
+    private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory)
     {
         var system = character.SystemPrompt ?? "";
+        if (!string.IsNullOrEmpty(memory))
+            system += $"\n\n---\nContext from earlier in this conversation:\n{memory}";
         if (playAs != null)
         {
             system += $"\n\n---\nYou are speaking with {playAs.Name}.";
@@ -102,7 +127,7 @@ public class OpenRouterService
         if (!string.IsNullOrWhiteSpace(system))
             msgs.Add(new { role = "system", content = system });
 
-        foreach (var msg in history)
+        foreach (var msg in history.Where(m => !m.IsSummary))
         {
             var content = msg.IsPlayer && !string.IsNullOrEmpty(msg.SenderName)
                 ? $"{msg.SenderName}: {msg.Text}"
@@ -115,10 +140,13 @@ public class OpenRouterService
         return msgs;
     }
 
-    private static List<object> BuildPartyMessages(Party party, List<Character> members, IEnumerable<ChatMessage> history, string userMessage, Character? playAs)
+    private static List<object> BuildPartyMessages(Party party, List<Character> members, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory)
     {
         var profiles = string.Join("\n\n", members.Select(m =>
             $"## {m.Name}\n{m.SystemPrompt}"));
+
+        var memorySec = string.IsNullOrEmpty(memory) ? "" :
+            $"\n\nContext from earlier in this conversation:\n{memory}";
 
         var playerSection = "";
         if (playAs != null)
@@ -134,6 +162,7 @@ public class OpenRouterService
             {profiles}
 
             {(string.IsNullOrWhiteSpace(party.Context) ? "" : $"Scene context: {party.Context}")}
+            {memorySec}
             {playerSection}
 
             When the player speaks, respond as whichever characters would naturally react.
@@ -146,7 +175,7 @@ public class OpenRouterService
 
         var msgs = new List<object> { new { role = "system", content = system } };
 
-        foreach (var msg in history)
+        foreach (var msg in history.Where(m => !m.IsSummary))
         {
             var content = msg.IsPlayer && !string.IsNullOrEmpty(msg.SenderName)
                 ? $"{msg.SenderName}: {msg.Text}"
