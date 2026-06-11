@@ -186,6 +186,9 @@ public class MainViewModel : INotifyPropertyChanged
                     Portrait   = SelectedCharacter.Portrait,
                     Timestamp  = DateTime.Now,
                 });
+
+                if (IsVoiceEnabled)
+                    _ = PiperService.SpeakAsync(line, SelectedCharacter.Character.VoiceModel);
             }
             ScrollToBottom?.Invoke();
             StatusText = "";
