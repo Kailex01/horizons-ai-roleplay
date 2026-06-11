@@ -150,6 +150,11 @@
                         Click="BrowsePiperExe_Click"/>
             </Grid>
 
+            <TextBlock Text="NARRATOR VOICE MODEL (for *emotes*, leave blank to use character voice)"
+                       Style="{StaticResource FieldLabel}"/>
+            <TextBox x:Name="NarratorModelBox" Style="{StaticResource FieldBox}"
+                     Margin="0,0,0,14"/>
+
             <TextBlock Text="PIPER MODELS FOLDER" Style="{StaticResource FieldLabel}"/>
             <Grid>
                 <Grid.ColumnDefinitions>

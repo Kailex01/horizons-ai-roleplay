@@ -12,11 +12,15 @@ public static class PiperService
     //   → character: "You dare challenge me?"
     public static async Task SpeakLineAsync(string line, string characterName, string? voiceModel)
     {
+        var narratorModel = AppConfig.Current.NarratorVoiceModel;
         foreach (var (text, isEmote) in ParseSegments(line))
         {
             if (string.IsNullOrWhiteSpace(text)) continue;
-            var spoken = isEmote ? $"{characterName} {text}" : text;
-            await SpeakAsync(spoken, voiceModel);
+            if (isEmote)
+                await SpeakAsync($"{characterName} {text}",
+                    string.IsNullOrWhiteSpace(narratorModel) ? voiceModel : narratorModel);
+            else
+                await SpeakAsync(text, voiceModel);
         }
     }
 

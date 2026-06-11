@@ -11,10 +11,11 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
         var s = AppConfig.Current;
-        BotAiUrlBox.Text     = s.BotAiBaseUrl;
-        SpeakerNameBox.Text  = s.SpeakerName;
-        PiperExeBox.Text     = s.PiperExePath;
-        PiperModelsBox.Text  = s.PiperModelsPath;
+        BotAiUrlBox.Text       = s.BotAiBaseUrl;
+        SpeakerNameBox.Text    = s.SpeakerName;
+        PiperExeBox.Text       = s.PiperExePath;
+        PiperModelsBox.Text    = s.PiperModelsPath;
+        NarratorModelBox.Text  = s.NarratorVoiceModel;
     }
 
     private void TitleBar_Drag(object sender, MouseButtonEventArgs e) => DragMove();
@@ -23,10 +24,11 @@ public partial class SettingsWindow : Window
     {
         AppConfig.Apply(new AppSettings
         {
-            BotAiBaseUrl    = BotAiUrlBox.Text.Trim(),
-            SpeakerName     = SpeakerNameBox.Text.Trim(),
-            PiperExePath    = PiperExeBox.Text.Trim(),
-            PiperModelsPath = PiperModelsBox.Text.Trim(),
+            BotAiBaseUrl       = BotAiUrlBox.Text.Trim(),
+            SpeakerName        = SpeakerNameBox.Text.Trim(),
+            PiperExePath       = PiperExeBox.Text.Trim(),
+            PiperModelsPath    = PiperModelsBox.Text.Trim(),
+            NarratorVoiceModel = NarratorModelBox.Text.Trim(),
         });
         DialogResult = true;
         Close();
