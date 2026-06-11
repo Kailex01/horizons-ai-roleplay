@@ -27,9 +27,11 @@ public sealed class KokoroService : IDisposable
     {
         if (_tts != null || !IsModelReady) return;
 
-        var folder = AppConfig.TtsFolder;
+        var folder     = AppConfig.TtsFolder;
+        var markerFile = Path.Combine(folder, "model_type.txt");
+        var modelType  = File.Exists(markerFile) ? File.ReadAllText(markerFile).Trim() : "en-v0_19";
+        var isMulti    = modelType != "en-v0_19";
 
-        // The multilingual archive names the file kokoro-multi-lang-v1_1.onnx, not model.onnx
         var onnxFile = Directory.GetFiles(folder, "*.onnx").FirstOrDefault()
             ?? throw new FileNotFoundException("No .onnx model file found in tts folder.");
 
@@ -40,14 +42,23 @@ public sealed class KokoroService : IDisposable
         config.Model.Kokoro.DataDir = Path.Combine(folder, "espeak-ng-data");
         config.Model.NumThreads     = 2;
 
-        _tts = new OfflineTts(config);
-
-        var markerFile = Path.Combine(folder, "model_type.txt");
-        if (File.Exists(markerFile))
+        if (isMulti)
         {
-            var type = File.ReadAllText(markerFile).Trim();
-            _sidMap  = type == "en-v0_19" ? SidsV019 : SidsV11;
+            // Multilingual model requires lexicon files and the jieba dict directory
+            var lexicons = new[] { "lexicon-us-en.txt", "lexicon-gb-en.txt", "lexicon-zh.txt" }
+                .Select(f => Path.Combine(folder, f))
+                .Where(File.Exists)
+                .ToList();
+            if (lexicons.Count > 0)
+                config.Model.Kokoro.Lexicon = string.Join(";", lexicons);
+
+            var dictDir = Path.Combine(folder, "dict");
+            if (Directory.Exists(dictDir))
+                config.Model.Kokoro.DictDir = dictDir;
         }
+
+        _tts    = new OfflineTts(config);
+        _sidMap = isMulti ? SidsV11 : SidsV019;
     }
 
     // ── Public API ─────────────────────────────────────────────────────────────
