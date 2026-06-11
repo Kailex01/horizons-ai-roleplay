@@ -178,6 +178,8 @@
                        VerticalAlignment="Center" Margin="14,0"/>
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal"
                         Margin="0,0,0,0" VerticalAlignment="Center">
+                <Button Content="⚙" Style="{StaticResource TitleBtn}" Click="Settings_Click"
+                        ToolTip="Settings"/>
                 <Button Content="─" Style="{StaticResource TitleBtn}" Click="Minimize_Click"
                         ToolTip="Minimize"/>
                 <Button Content="⬜" Style="{StaticResource TitleBtn}" Click="MaxRestore_Click"

@@ -11,10 +11,10 @@ public class BotAiService
     public async Task<List<Character>> GetCharactersAsync()
     {
         var list = await _http.GetFromJsonAsync<List<Character>>(
-            $"{AppConfig.BotAiBaseUrl}/api/personalities?game={AppConfig.Game}") ?? [];
+            $"{AppConfig.Current.BotAiBaseUrl}/api/personalities?game={AppConfig.Game}") ?? [];
 
         foreach (var c in list.Where(c => c.PortraitUrl != null))
-            c.PortraitUrl = AppConfig.BotAiBaseUrl + c.PortraitUrl;
+            c.PortraitUrl = AppConfig.Current.BotAiBaseUrl + c.PortraitUrl;
 
         return list
             .Where(c => c.Enabled)
@@ -47,13 +47,13 @@ public class BotAiService
             game         = character.Game,
             category     = character.Category,
             npc_name     = character.NpcName,
-            speaker_name = AppConfig.SpeakerName,
+            speaker_name = AppConfig.Current.SpeakerName,
             location     = AppConfig.DefaultLocation,
             channel      = AppConfig.DefaultChannel,
             message,
             context      = new { },
         };
-        var resp = await _http.PostAsJsonAsync($"{AppConfig.BotAiBaseUrl}/api/chat", body);
+        var resp = await _http.PostAsJsonAsync($"{AppConfig.Current.BotAiBaseUrl}/api/chat", body);
         resp.EnsureSuccessStatusCode();
         var result = await resp.Content.ReadFromJsonAsync<ChatResponse>();
         return result?.Lines ?? [];

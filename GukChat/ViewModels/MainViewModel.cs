@@ -102,6 +102,15 @@ public class MainViewModel : INotifyPropertyChanged
             _ => !IsSending && SelectedCharacter != null && !string.IsNullOrWhiteSpace(InputText));
     }
 
+    // ── Settings changed ───────────────────────────────────────────────────────
+
+    public void OnSettingsChanged()
+    {
+        // Rebuild the HttpClient base address is not needed — BotAiService reads
+        // AppConfig.Current at call time. Just signal the UI if needed.
+        StatusText = Characters.Count == 0 ? "Connecting…" : "";
+    }
+
     // ── Startup ────────────────────────────────────────────────────────────────
 
     public async Task InitializeAsync()
@@ -157,7 +166,7 @@ public class MainViewModel : INotifyPropertyChanged
         {
             Text       = text,
             IsPlayer   = true,
-            SenderName = AppConfig.SpeakerName,
+            SenderName = AppConfig.Current.SpeakerName,
             Timestamp  = DateTime.Now,
         });
         ScrollToBottom?.Invoke();

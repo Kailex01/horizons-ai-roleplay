@@ -40,6 +40,13 @@ public partial class MainWindow : Window
     private void Close_Click(object sender, RoutedEventArgs e)
         => Close();
 
+    private void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SettingsWindow { Owner = this };
+        if (dlg.ShowDialog() == true)
+            _vm.OnSettingsChanged();
+    }
+
     private void ToggleMaximize()
     {
         WindowState = WindowState == WindowState.Maximized
