@@ -1,4 +1,4 @@
-namespace GukChat.ViewModels;
+namespace HorizonsAI.ViewModels;
 
 public class RelayCommand : ICommand
 {

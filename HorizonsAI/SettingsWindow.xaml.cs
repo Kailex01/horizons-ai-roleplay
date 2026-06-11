@@ -1,9 +1,9 @@
 using System.Windows.Forms;
 using System.Windows.Input;
-using GukChat.Models;
-using GukChat.Services;
+using HorizonsAI.Models;
+using HorizonsAI.Services;
 
-namespace GukChat;
+namespace HorizonsAI;
 
 public partial class SettingsWindow : Window
 {

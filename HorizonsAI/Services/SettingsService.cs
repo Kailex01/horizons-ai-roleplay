@@ -1,6 +1,6 @@
-using GukChat.Models;
+using HorizonsAI.Models;
 
-namespace GukChat.Services;
+namespace HorizonsAI.Services;
 
 public static class SettingsService
 {

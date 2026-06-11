@@ -1,4 +1,4 @@
-namespace GukChat.Models;
+namespace HorizonsAI.Models;
 
 public class AppSettings
 {

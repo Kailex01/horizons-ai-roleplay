@@ -1,7 +1,7 @@
 using System.Windows.Input;
-using GukChat.ViewModels;
+using HorizonsAI.ViewModels;
 
-namespace GukChat;
+namespace HorizonsAI;
 
 public partial class MainWindow : Window
 {

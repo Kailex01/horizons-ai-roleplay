@@ -1,7 +1,7 @@
-using GukChat.Models;
-using GukChat.Services;
+using HorizonsAI.Models;
+using HorizonsAI.Services;
 
-namespace GukChat.ViewModels;
+namespace HorizonsAI.ViewModels;
 
 public class MainViewModel : INotifyPropertyChanged
 {
@@ -95,7 +95,7 @@ public class MainViewModel : INotifyPropertyChanged
 
     public MainViewModel()
     {
-        _http.DefaultRequestHeaders.UserAgent.ParseAdd("GukChat/1.0");
+        _http.DefaultRequestHeaders.UserAgent.ParseAdd("HorizonsAI/1.0");
         _botAi = new BotAiService(_http);
         SendCommand = new RelayCommand(
             async _ => await SendMessageAsync(),

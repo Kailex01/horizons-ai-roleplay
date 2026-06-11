@@ -1,6 +1,6 @@
-using GukChat.Models;
+using HorizonsAI.Models;
 
-namespace GukChat.ViewModels;
+namespace HorizonsAI.ViewModels;
 
 public class CharacterItem : INotifyPropertyChanged
 {

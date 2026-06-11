@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Media;
 using System.Text.RegularExpressions;
 
-namespace GukChat.Services;
+namespace HorizonsAI.Services;
 
 public static class PiperService
 {

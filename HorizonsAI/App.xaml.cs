@@ -1,4 +1,4 @@
-namespace GukChat;
+namespace HorizonsAI;
 
 public partial class App : Application
 {
