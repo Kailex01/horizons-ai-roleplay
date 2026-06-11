@@ -682,9 +682,13 @@
                 </Border>
 
                 <!-- Status (Row 3) -->
-                <TextBlock Grid.Row="3" Text="{Binding StatusText}"
-                           Foreground="#4A6070" FontSize="11" Margin="16,4,16,2"
-                           Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}"/>
+                <TextBox Grid.Row="3" Text="{Binding StatusText, Mode=OneWay}"
+                         Foreground="#4A6070" FontSize="11" Margin="16,4,16,2"
+                         Background="Transparent" BorderThickness="0"
+                         IsReadOnly="True" TextWrapping="Wrap"
+                         MaxHeight="80" VerticalScrollBarVisibility="Auto"
+                         Cursor="IBeam"
+                         Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}"/>
 
                 <!-- Author's note panel (Row 4, toggleable) -->
                 <Border Grid.Row="4" Background="#080E14"
