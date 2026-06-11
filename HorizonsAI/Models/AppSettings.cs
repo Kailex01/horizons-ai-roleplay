@@ -10,4 +10,5 @@ public class AppSettings
     public string PiperModelsPath    { get; set; } = "";
     public string NarratorVoiceModel { get; set; } = "";
     public string SpeachesBaseUrl    { get; set; } = "http://localhost:8880";
+    public string AuthorsNote        { get; set; } = "";
 }

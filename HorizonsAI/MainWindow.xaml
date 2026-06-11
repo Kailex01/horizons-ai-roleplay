@@ -442,10 +442,12 @@
             <!-- ─── Chat area ─── -->
             <Grid Grid.Column="2" Background="#0F1923">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="68"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="60"/>
+                    <RowDefinition Height="68"/>    <!-- 0: header -->
+                    <RowDefinition Height="*"/>     <!-- 1: messages -->
+                    <RowDefinition Height="Auto"/>  <!-- 2: regenerate button -->
+                    <RowDefinition Height="Auto"/>  <!-- 3: status text -->
+                    <RowDefinition Height="Auto"/>  <!-- 4: author's note panel -->
+                    <RowDefinition Height="60"/>    <!-- 5: input bar -->
                 </Grid.RowDefinitions>
 
                 <!-- Character header (single character mode) -->
@@ -537,14 +539,43 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <Border Background="#1A3A2A" CornerRadius="12,12,0,12" Padding="12,8">
+                                            <Border.ContextMenu>
+                                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext,
+                                                                           RelativeSource={RelativeSource Self}}">
+                                                    <MenuItem Header="✏ Edit" Click="EditMessage_Click"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
                                             <StackPanel>
                                                 <TextBlock Text="{Binding SenderName}"
                                                            Foreground="#6AAA78" FontSize="10" FontWeight="Bold"
                                                            HorizontalAlignment="Right" Margin="0,0,0,3"/>
                                                 <TextBlock Text="{Binding Text}" Foreground="#A8D8B0"
-                                                           FontSize="13" TextWrapping="Wrap"/>
+                                                           FontSize="13" TextWrapping="Wrap"
+                                                           Visibility="{Binding IsNotEditing, Converter={StaticResource BoolToVis}}"/>
+                                                <TextBox Text="{Binding EditDraft, UpdateSourceTrigger=PropertyChanged}"
+                                                         Background="#0F2A1A" BorderBrush="#2A6A3A" BorderThickness="1"
+                                                         Foreground="#A8D8B0" FontSize="13" TextWrapping="Wrap"
+                                                         CaretBrush="#C8A020" AcceptsReturn="True" MinLines="2"
+                                                         Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"/>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                                            Margin="0,4,0,0"
+                                                            Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
+                                                    <Button Content="Save" Height="24" Padding="12,0" Margin="0,0,6,0"
+                                                            FontSize="11" Background="#1A5A2A" Foreground="White"
+                                                            BorderThickness="0" Cursor="Hand"
+                                                            Command="{Binding DataContext.EditCommitCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"/>
+                                                    <Button Content="Cancel" Height="24" Padding="12,0"
+                                                            FontSize="11" Background="#3A1A1A" Foreground="#AAA"
+                                                            BorderThickness="0" Cursor="Hand"
+                                                            Command="{Binding DataContext.EditCancelCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </StackPanel>
                                                 <TextBlock Text="{Binding TimeStr}" Foreground="#4A6070"
-                                                           FontSize="9" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                                                           FontSize="9" HorizontalAlignment="Right" Margin="0,4,0,0"
+                                                           Visibility="{Binding IsNotEditing, Converter={StaticResource BoolToVis}}"/>
                                             </StackPanel>
                                         </Border>
                                         <Border Grid.Column="1" Width="36" Height="36" CornerRadius="18"
@@ -569,15 +600,43 @@
                                         </Border>
                                         <Border Grid.Column="2" Background="#111E2A"
                                                 CornerRadius="0,12,12,12" Padding="12,8">
+                                            <Border.ContextMenu>
+                                                <ContextMenu DataContext="{Binding PlacementTarget.DataContext,
+                                                                           RelativeSource={RelativeSource Self}}">
+                                                    <MenuItem Header="✏ Edit" Click="EditMessage_Click"/>
+                                                </ContextMenu>
+                                            </Border.ContextMenu>
                                             <StackPanel>
                                                 <TextBlock Text="{Binding SenderName}"
                                                            Foreground="#C8A020" FontSize="10" FontWeight="Bold"
                                                            Margin="0,0,0,3"/>
                                                 <TextBlock Text="{Binding Text}" Foreground="#D4C5A0"
-                                                           FontSize="13" TextWrapping="Wrap"/>
+                                                           FontSize="13" TextWrapping="Wrap"
+                                                           Visibility="{Binding IsNotEditing, Converter={StaticResource BoolToVis}}"/>
+                                                <TextBox Text="{Binding EditDraft, UpdateSourceTrigger=PropertyChanged}"
+                                                         Background="#0A1820" BorderBrush="#1E4A60" BorderThickness="1"
+                                                         Foreground="#D4C5A0" FontSize="13" TextWrapping="Wrap"
+                                                         CaretBrush="#C8A020" AcceptsReturn="True" MinLines="2"
+                                                         Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}"/>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"
+                                                            Margin="0,4,0,0"
+                                                            Visibility="{Binding IsEditing, Converter={StaticResource BoolToVis}}">
+                                                    <Button Content="Save" Height="24" Padding="12,0" Margin="0,0,6,0"
+                                                            FontSize="11" Background="#1A5A2A" Foreground="White"
+                                                            BorderThickness="0" Cursor="Hand"
+                                                            Command="{Binding DataContext.EditCommitCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"/>
+                                                    <Button Content="Cancel" Height="24" Padding="12,0"
+                                                            FontSize="11" Background="#3A1A1A" Foreground="#AAA"
+                                                            BorderThickness="0" Cursor="Hand"
+                                                            Command="{Binding DataContext.EditCancelCommand,
+                                                                      RelativeSource={RelativeSource AncestorType=Window}}"
+                                                            CommandParameter="{Binding}"/>
+                                                </StackPanel>
                                                 <TextBlock Text="{Binding TimeStr}" Foreground="#4A6070"
-                                                           FontSize="9" HorizontalAlignment="Left"
-                                                           Margin="0,4,0,0"/>
+                                                           FontSize="9" HorizontalAlignment="Left" Margin="0,4,0,0"
+                                                           Visibility="{Binding IsNotEditing, Converter={StaticResource BoolToVis}}"/>
                                             </StackPanel>
                                         </Border>
                                     </Grid>
@@ -587,13 +646,70 @@
                     </ItemsControl>
                 </ScrollViewer>
 
-                <!-- Status -->
-                <TextBlock Grid.Row="2" Text="{Binding StatusText}"
+                <!-- Regenerate button (Row 2, visible when there are AI responses to redo) -->
+                <Border Grid.Row="2" Background="#080E14"
+                        BorderBrush="#1E3A50" BorderThickness="0,1,0,0"
+                        Visibility="{Binding CanRegenerate, Converter={StaticResource BoolToVis}}"
+                        Padding="0,4">
+                    <Button Content="↺  Regenerate last response"
+                            HorizontalAlignment="Center"
+                            Command="{Binding RegenerateCommand}"
+                            Height="26" Padding="16,0" FontSize="11"
+                            Background="#1A2E10" Foreground="#8AC878"
+                            BorderBrush="#2A5A18" BorderThickness="1"
+                            Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="Bd"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="4" Padding="{TemplateBinding Padding}"
+                                        Height="{TemplateBinding Height}">
+                                    <TextBlock Text="{TemplateBinding Content}"
+                                               Foreground="{TemplateBinding Foreground}"
+                                               FontSize="{TemplateBinding FontSize}"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="Bd" Property="Background" Value="#253E18"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                </Border>
+
+                <!-- Status (Row 3) -->
+                <TextBlock Grid.Row="3" Text="{Binding StatusText}"
                            Foreground="#4A6070" FontSize="11" Margin="16,4,16,2"
                            Visibility="{Binding HasStatus, Converter={StaticResource BoolToVis}}"/>
 
-                <!-- Input bar -->
-                <Border Grid.Row="3" Background="#0A1018"
+                <!-- Author's note panel (Row 4, toggleable) -->
+                <Border Grid.Row="4" Background="#080E14"
+                        BorderBrush="#8A60C8" BorderThickness="0,1,0,0"
+                        Visibility="{Binding IsAuthorsNoteOpen, Converter={StaticResource BoolToVis}}"
+                        Padding="12,6">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Author's Note" Foreground="#8A60C8" FontSize="10" FontWeight="Bold"
+                                   VerticalAlignment="Center" Margin="0,0,12,0"/>
+                        <Border Grid.Column="1" Background="#111E2A"
+                                CornerRadius="4" BorderBrush="#1E3A50" BorderThickness="1">
+                            <TextBox Text="{Binding AuthorsNote, UpdateSourceTrigger=PropertyChanged}"
+                                     Background="Transparent" BorderThickness="0"
+                                     Foreground="#D4C5A0" FontSize="12" Padding="8,5"
+                                     CaretBrush="#C8A020" VerticalAlignment="Center"/>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- Input bar (Row 5) -->
+                <Border Grid.Row="5" Background="#0A1018"
                         BorderBrush="#1E3A50" BorderThickness="0,1,0,0">
                     <Grid Margin="12,8">
                         <Grid.ColumnDefinitions>
@@ -601,6 +717,8 @@
                             <ColumnDefinition Width="6"/>
                             <ColumnDefinition Width="*"/>   <!-- text input -->
                             <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="44"/>  <!-- author's note toggle -->
+                            <ColumnDefinition Width="6"/>
                             <ColumnDefinition Width="44"/>  <!-- voice toggle -->
                             <ColumnDefinition Width="6"/>
                             <ColumnDefinition Width="44"/>  <!-- send -->
@@ -633,11 +751,18 @@
                                      IsEnabled="{Binding HasActiveCharacter}"
                                      KeyDown="InputBox_KeyDown"/>
                         </Border>
-                        <ToggleButton Grid.Column="4" Content="🔊"
+
+                        <!-- Author's note toggle -->
+                        <ToggleButton Grid.Column="4" Content="✍"
+                                      Style="{StaticResource VoiceToggleBtn}"
+                                      IsChecked="{Binding IsAuthorsNoteOpen}"
+                                      ToolTip="Author's note"/>
+
+                        <ToggleButton Grid.Column="6" Content="🔊"
                                       Style="{StaticResource VoiceToggleBtn}"
                                       IsChecked="{Binding IsVoiceEnabled}"
                                       ToolTip="Toggle voice"/>
-                        <Button Grid.Column="6" Content="▶"
+                        <Button Grid.Column="8" Content="▶"
                                 Style="{StaticResource ActionBtn}"
                                 Command="{Binding SendCommand}"
                                 ToolTip="Send (Enter)"/>

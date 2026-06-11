@@ -7,7 +7,7 @@ public class MainViewModel : INotifyPropertyChanged
 {
     private readonly HttpClient        _http   = new() { Timeout = TimeSpan.FromSeconds(60) };
     private readonly OpenRouterService _openRouter;
-    private readonly Dictionary<string, ObservableCollection<ChatMessage>> _conversations = new();
+    private readonly Dictionary<string, ObservableCollection<ChatMessageVm>> _conversations = new();
     private readonly Dictionary<string, string> _memory = new();
     private Lorebook _lorebook = new();
 
@@ -113,7 +113,7 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
-    public string       PlayAsName    => _playAsCharacter?.Character.Name ?? AppConfig.Current.SpeakerName;
+    public string       PlayAsName     => _playAsCharacter?.Character.Name ?? AppConfig.Current.SpeakerName;
     public BitmapImage? PlayAsPortrait => _playAsCharacter?.Portrait;
     public string       PlayAsInitial  => PlayAsName.Length > 0 ? PlayAsName[0].ToString().ToUpper() : "P";
 
@@ -126,11 +126,16 @@ public class MainViewModel : INotifyPropertyChanged
 
     // ── Messages ───────────────────────────────────────────────────────────────
 
-    private ObservableCollection<ChatMessage> _messages = new();
-    public ObservableCollection<ChatMessage> Messages
+    private ObservableCollection<ChatMessageVm> _messages = new();
+    public ObservableCollection<ChatMessageVm> Messages
     {
         get => _messages;
-        private set { _messages = value; OnPropertyChanged(); }
+        private set
+        {
+            _messages = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(CanRegenerate));
+        }
     }
 
     // ── Input / status ─────────────────────────────────────────────────────────
@@ -150,6 +155,7 @@ public class MainViewModel : INotifyPropertyChanged
         {
             _isSending = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(CanRegenerate));
             Application.Current.Dispatcher.InvokeAsync(CommandManager.InvalidateRequerySuggested);
         }
     }
@@ -170,9 +176,39 @@ public class MainViewModel : INotifyPropertyChanged
         set { _isVoiceEnabled = value; OnPropertyChanged(); }
     }
 
+    // ── Author's note ──────────────────────────────────────────────────────────
+
+    private bool _isAuthorsNoteOpen;
+    public bool IsAuthorsNoteOpen
+    {
+        get => _isAuthorsNoteOpen;
+        set { _isAuthorsNoteOpen = value; OnPropertyChanged(); }
+    }
+
+    private string _authorsNote = "";
+    public string AuthorsNote
+    {
+        get => _authorsNote;
+        set
+        {
+            _authorsNote = value;
+            OnPropertyChanged();
+            AppConfig.Current.AuthorsNote = value;
+            AppConfig.Save();
+        }
+    }
+
+    // ── Regenerate ────────────────────────────────────────────────────────────
+
+    public bool CanRegenerate => !_isSending && HasActiveCharacter && _messages.Any(vm => vm.IsPlayer);
+
     // ── Commands ───────────────────────────────────────────────────────────────
 
-    public ICommand SendCommand { get; }
+    public ICommand SendCommand       { get; }
+    public ICommand RegenerateCommand { get; }
+    public ICommand EditBeginCommand  { get; }
+    public ICommand EditCommitCommand { get; }
+    public ICommand EditCancelCommand { get; }
 
     // ── Scroll signal ──────────────────────────────────────────────────────────
 
@@ -183,11 +219,39 @@ public class MainViewModel : INotifyPropertyChanged
     public MainViewModel()
     {
         _http.DefaultRequestHeaders.UserAgent.ParseAdd("HorizonsAI/1.0");
-        _openRouter = new OpenRouterService(_http);
+        _openRouter  = new OpenRouterService(_http);
+        _authorsNote = AppConfig.Current.AuthorsNote;
 
         SendCommand = new RelayCommand(
             async _ => await SendMessageAsync(),
             _ => !IsSending && HasActiveCharacter && !string.IsNullOrWhiteSpace(InputText));
+
+        RegenerateCommand = new RelayCommand(
+            async _ => await RegenerateAsync(),
+            _ => CanRegenerate);
+
+        EditBeginCommand = new RelayCommand(p =>
+        {
+            if (p is ChatMessageVm vm) vm.BeginEdit();
+            return Task.CompletedTask;
+        });
+
+        EditCommitCommand = new RelayCommand(p =>
+        {
+            if (p is ChatMessageVm vm)
+            {
+                vm.CommitEdit();
+                var key = ConversationKey();
+                if (key != null) AutoSave(key);
+            }
+            return Task.CompletedTask;
+        });
+
+        EditCancelCommand = new RelayCommand(p =>
+        {
+            if (p is ChatMessageVm vm) vm.CancelEdit();
+            return Task.CompletedTask;
+        });
 
         SelectCharacterCommand = new RelayCommand(
             p => { if (p is CharacterItem item) SelectedCharacter = item; return Task.CompletedTask; });
@@ -286,7 +350,11 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void LoadLorebook() => _lorebook = LorebookService.Load();
 
-    public void OnSettingsChanged() { }
+    public void OnSettingsChanged()
+    {
+        _authorsNote = AppConfig.Current.AuthorsNote;
+        OnPropertyChanged(nameof(AuthorsNote));
+    }
 
     // ── Conversation management ────────────────────────────────────────────────
 
@@ -308,10 +376,10 @@ public class MainViewModel : INotifyPropertyChanged
         var state = ChatLogService.Load(key);
         _memory[key] = state.Memory ?? "";
 
-        var loaded = new ObservableCollection<ChatMessage>();
+        var loaded = new ObservableCollection<ChatMessageVm>();
         foreach (var dto in state.Messages)
         {
-            loaded.Add(new ChatMessage
+            loaded.Add(new ChatMessageVm(new ChatMessage
             {
                 Text         = dto.Text,
                 IsPlayer     = dto.IsPlayer,
@@ -321,7 +389,7 @@ public class MainViewModel : INotifyPropertyChanged
                 Portrait     = !string.IsNullOrEmpty(dto.PortraitFile)
                                ? PortraitService.Load(dto.PortraitFile) : null,
                 Timestamp    = dto.Timestamp,
-            });
+            }));
         }
         _conversations[key] = loaded;
     }
@@ -343,7 +411,7 @@ public class MainViewModel : INotifyPropertyChanged
         InputText = "";
         IsSending = true;
 
-        Messages.Add(new ChatMessage
+        Messages.Add(new ChatMessageVm(new ChatMessage
         {
             Text         = text,
             IsPlayer     = true,
@@ -351,7 +419,7 @@ public class MainViewModel : INotifyPropertyChanged
             Portrait     = PlayAsPortrait,
             PortraitFile = _playAsCharacter?.Character.Portrait,
             Timestamp    = DateTime.Now,
-        });
+        }));
         ScrollToBottom?.Invoke();
 
         try
@@ -371,23 +439,59 @@ public class MainViewModel : INotifyPropertyChanged
         }
     }
 
+    private async Task RegenerateAsync()
+    {
+        var key = ConversationKey();
+        if (key is null) return;
+
+        int lastPlayerIdx = -1;
+        for (int i = Messages.Count - 1; i >= 0; i--)
+        {
+            if (Messages[i].IsPlayer) { lastPlayerIdx = i; break; }
+        }
+        if (lastPlayerIdx < 0) return;
+
+        var lastText = Messages[lastPlayerIdx].Message.Text;
+
+        while (Messages.Count > lastPlayerIdx + 1)
+            Messages.RemoveAt(Messages.Count - 1);
+
+        IsSending = true;
+        try
+        {
+            if (_selectedCharacter != null)
+                await SendToCharacterAsync(_selectedCharacter, key, lastText);
+            else if (_selectedParty != null)
+                await SendToPartyAsync(_selectedParty, key, lastText);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            IsSending = false;
+        }
+    }
+
     private async Task SendToCharacterAsync(CharacterItem charItem, string key, string text)
     {
         StatusText = $"{charItem.DisplayName} is thinking…";
 
         var memory = GetMemory(key);
-        var lore   = OpenRouterService.MatchLore(Messages, text, _lorebook.Entries);
+        var lore   = OpenRouterService.MatchLore(Messages.Select(vm => vm.Message), text, _lorebook.Entries);
         var lines  = await _openRouter.ChatAsync(
             charItem.Character,
-            Messages.SkipLast(0),
+            Messages.SkipLast(1).Select(vm => vm.Message),
             text,
             _playAsCharacter?.Character,
             memory,
-            lore);
+            lore,
+            _authorsNote);
 
         foreach (var line in lines)
         {
-            Messages.Add(new ChatMessage
+            Messages.Add(new ChatMessageVm(new ChatMessage
             {
                 Text         = line,
                 IsPlayer     = false,
@@ -395,10 +499,11 @@ public class MainViewModel : INotifyPropertyChanged
                 Portrait     = charItem.Portrait,
                 PortraitFile = charItem.Character.Portrait,
                 Timestamp    = DateTime.Now,
-            });
+            }));
         }
         ScrollToBottom?.Invoke();
         StatusText = "";
+        OnPropertyChanged(nameof(CanRegenerate));
 
         if (IsVoiceEnabled)
             _ = PiperService.SpeakLinesAsync(lines, charItem.DisplayName, charItem.Character.VoiceModel);
@@ -413,16 +518,17 @@ public class MainViewModel : INotifyPropertyChanged
         StatusText = $"{partyItem.DisplayName} is responding…";
 
         var memory   = GetMemory(key);
-        var lore     = OpenRouterService.MatchLore(Messages, text, _lorebook.Entries);
+        var lore     = OpenRouterService.MatchLore(Messages.Select(vm => vm.Message), text, _lorebook.Entries);
         var members  = partyItem.Members.Select(m => m.Character);
         var replies  = await _openRouter.ChatPartyAsync(
             partyItem.Party,
             members,
-            Messages.SkipLast(0),
+            Messages.SkipLast(1).Select(vm => vm.Message),
             text,
             _playAsCharacter?.Character,
             memory,
-            lore);
+            lore,
+            _authorsNote);
 
         var portraitMap = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Portrait);
         var fileMap     = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.Portrait);
@@ -432,7 +538,7 @@ public class MainViewModel : INotifyPropertyChanged
         {
             portraitMap.TryGetValue(name, out var portrait);
             fileMap.TryGetValue(name, out var portraitFile);
-            Messages.Add(new ChatMessage
+            Messages.Add(new ChatMessageVm(new ChatMessage
             {
                 Text         = msg,
                 IsPlayer     = false,
@@ -440,10 +546,11 @@ public class MainViewModel : INotifyPropertyChanged
                 Portrait     = portrait,
                 PortraitFile = portraitFile,
                 Timestamp    = DateTime.Now,
-            });
+            }));
         }
         ScrollToBottom?.Invoke();
         StatusText = "";
+        OnPropertyChanged(nameof(CanRegenerate));
 
         if (IsVoiceEnabled)
         {
@@ -466,20 +573,20 @@ public class MainViewModel : INotifyPropertyChanged
 
     private void AutoSave(string key)
     {
-        if (!_conversations.TryGetValue(key, out var msgs)) return;
+        if (!_conversations.TryGetValue(key, out var vms)) return;
         _memory.TryGetValue(key, out var memory);
 
         var state = new ConversationState
         {
             Memory   = string.IsNullOrEmpty(memory) ? null : memory,
-            Messages = msgs.Select(m => new ChatMessageDto
+            Messages = vms.Select(vm => new ChatMessageDto
             {
-                Text         = m.Text,
-                IsPlayer     = m.IsPlayer,
-                IsSummary    = m.IsSummary,
-                SenderName   = m.SenderName,
-                PortraitFile = m.PortraitFile,
-                Timestamp    = m.Timestamp,
+                Text         = vm.Message.Text,
+                IsPlayer     = vm.Message.IsPlayer,
+                IsSummary    = vm.Message.IsSummary,
+                SenderName   = vm.Message.SenderName,
+                PortraitFile = vm.Message.PortraitFile,
+                Timestamp    = vm.Message.Timestamp,
             }).ToList()
         };
 
@@ -490,10 +597,10 @@ public class MainViewModel : INotifyPropertyChanged
 
     private async Task TrySummarizeAsync(string key)
     {
-        if (!_conversations.TryGetValue(key, out var msgs)) return;
-        if (msgs.Count <= SummarizeThreshold) return;
+        if (!_conversations.TryGetValue(key, out var vms)) return;
+        if (vms.Count <= SummarizeThreshold) return;
 
-        var toSummarize = msgs.Take(msgs.Count - KeepRecentCount).ToList();
+        var toSummarize = vms.Take(vms.Count - KeepRecentCount).Select(vm => vm.Message).ToList();
         _memory.TryGetValue(key, out var existingMemory);
 
         try
@@ -504,18 +611,16 @@ public class MainViewModel : INotifyPropertyChanged
 
             _memory[key] = summary;
 
-            // Remove summarized messages from the observable collection
             for (int i = 0; i < toSummarize.Count; i++)
-                msgs.RemoveAt(0);
+                vms.RemoveAt(0);
 
-            // Insert a visible marker so the user knows context was condensed
-            msgs.Insert(0, new ChatMessage
+            vms.Insert(0, new ChatMessageVm(new ChatMessage
             {
                 IsSummary  = true,
                 SenderName = "Memory",
                 Text       = summary,
                 Timestamp  = DateTime.Now,
-            });
+            }));
 
             AutoSave(key);
         }
@@ -542,6 +647,7 @@ public class MainViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(HasActiveCharacter));
         OnPropertyChanged(nameof(IsPartyActive));
         OnPropertyChanged(nameof(ActivePartyMembers));
+        OnPropertyChanged(nameof(CanRegenerate));
     }
 
     // ── INotifyPropertyChanged ─────────────────────────────────────────────────

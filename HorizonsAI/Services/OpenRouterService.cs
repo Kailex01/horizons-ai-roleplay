@@ -27,14 +27,14 @@ public class OpenRouterService
 
     // ── Single character chat ──────────────────────────────────────────────────
 
-    public async Task<List<string>> ChatAsync(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs = null, string? memory = null, IReadOnlyList<LoreEntry>? lore = null)
+    public async Task<List<string>> ChatAsync(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs = null, string? memory = null, IReadOnlyList<LoreEntry>? lore = null, string? authorsNote = null)
     {
         var apiKey = AppConfig.Current.OpenRouterApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
             return ["(No OpenRouter API key set — open Settings to add one.)"];
 
         var model    = string.IsNullOrWhiteSpace(character.Model) ? AppConfig.Current.DefaultModel : character.Model;
-        var messages = BuildSingleMessages(character, history, userMessage, playAs, memory, lore);
+        var messages = BuildSingleMessages(character, history, userMessage, playAs, memory, lore, authorsNote);
         var text     = await SendAsync(model, messages);
 
         if (string.IsNullOrEmpty(text)) return ["…"];
@@ -54,7 +54,8 @@ public class OpenRouterService
         string userMessage,
         Character? playAs = null,
         string? memory = null,
-        IReadOnlyList<LoreEntry>? lore = null)
+        IReadOnlyList<LoreEntry>? lore = null,
+        string? authorsNote = null)
     {
         var apiKey = AppConfig.Current.OpenRouterApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -62,7 +63,7 @@ public class OpenRouterService
 
         var memberList = members.ToList();
         var model      = AppConfig.Current.DefaultModel;
-        var messages   = BuildPartyMessages(party, memberList, history, userMessage, playAs, memory, lore);
+        var messages   = BuildPartyMessages(party, memberList, history, userMessage, playAs, memory, lore, authorsNote);
         var text       = await SendAsync(model, messages);
 
         if (string.IsNullOrEmpty(text)) return [("", "…")];
@@ -126,7 +127,7 @@ public class OpenRouterService
         return await SendAsync(AppConfig.Current.DefaultModel, apiMessages);
     }
 
-    private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory, IReadOnlyList<LoreEntry>? lore)
+    private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory, IReadOnlyList<LoreEntry>? lore, string? authorsNote)
     {
         var system = character.SystemPrompt ?? "";
         if (lore?.Count > 0)
@@ -152,12 +153,14 @@ public class OpenRouterService
             msgs.Add(new { role = msg.IsPlayer ? "user" : "assistant", content });
         }
 
+        if (!string.IsNullOrEmpty(authorsNote))
+            msgs.Add(new { role = "system", content = $"[Author's note: {authorsNote}]" });
         var current = playAs != null ? $"{playAs.Name}: {userMessage}" : userMessage;
         msgs.Add(new { role = "user", content = current });
         return msgs;
     }
 
-    private static List<object> BuildPartyMessages(Party party, List<Character> members, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory, IReadOnlyList<LoreEntry>? lore)
+    private static List<object> BuildPartyMessages(Party party, List<Character> members, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory, IReadOnlyList<LoreEntry>? lore, string? authorsNote)
     {
         var profiles = string.Join("\n\n", members.Select(m =>
             $"## {m.Name}\n{m.SystemPrompt}"));
@@ -204,6 +207,8 @@ public class OpenRouterService
             msgs.Add(new { role = msg.IsPlayer ? "user" : "assistant", content });
         }
 
+        if (!string.IsNullOrEmpty(authorsNote))
+            msgs.Add(new { role = "system", content = $"[Author's note: {authorsNote}]" });
         var currentMsg = playAs != null ? $"{playAs.Name}: {userMessage}" : userMessage;
         msgs.Add(new { role = "user", content = currentMsg });
         return msgs;

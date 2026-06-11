@@ -116,6 +116,14 @@ public partial class MainWindow : Window
         _vm.LoadLorebook();
     }
 
+    // ── Message edit ──────────────────────────────────────────────────────────
+
+    private void EditMessage_Click(object sender, RoutedEventArgs e)
+    {
+        var vm = GetContextItem<ChatMessageVm>(sender);
+        vm?.BeginEdit();
+    }
+
     // ── Input ──────────────────────────────────────────────────────────────────
 
     private void InputBox_KeyDown(object sender, KeyEventArgs e)
