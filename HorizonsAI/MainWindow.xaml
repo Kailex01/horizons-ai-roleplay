@@ -515,16 +515,30 @@
                             <DataTemplate>
                                 <Grid Margin="0,5">
                                     <!-- Player bubble -->
-                                    <Border HorizontalAlignment="Right" MaxWidth="520"
-                                            Background="#1A3A2A" CornerRadius="12,12,0,12" Padding="12,8"
-                                            Visibility="{Binding IsPlayer, Converter={StaticResource BoolToVis}}">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Text}" Foreground="#A8D8B0"
-                                                       FontSize="13" TextWrapping="Wrap"/>
-                                            <TextBlock Text="{Binding TimeStr}" Foreground="#4A6070"
-                                                       FontSize="9" HorizontalAlignment="Right" Margin="0,4,0,0"/>
-                                        </StackPanel>
-                                    </Border>
+                                    <Grid HorizontalAlignment="Right" MaxWidth="560"
+                                          Visibility="{Binding IsPlayer, Converter={StaticResource BoolToVis}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Border Background="#1A3A2A" CornerRadius="12,12,0,12" Padding="12,8">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding SenderName}"
+                                                           Foreground="#6AAA78" FontSize="10" FontWeight="Bold"
+                                                           HorizontalAlignment="Right" Margin="0,0,0,3"/>
+                                                <TextBlock Text="{Binding Text}" Foreground="#A8D8B0"
+                                                           FontSize="13" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding TimeStr}" Foreground="#4A6070"
+                                                           FontSize="9" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Grid.Column="1" Width="36" Height="36" CornerRadius="18"
+                                                Background="#1E3A50" ClipToBounds="True"
+                                                VerticalAlignment="Top" Margin="8,2,0,0"
+                                                Visibility="{Binding HasPortrait, Converter={StaticResource BoolToVis}}">
+                                            <Image Source="{Binding Portrait}" Stretch="UniformToFill"/>
+                                        </Border>
+                                    </Grid>
                                     <!-- Character / party-member bubble -->
                                     <Grid HorizontalAlignment="Left" MaxWidth="580"
                                           Visibility="{Binding IsCharacter, Converter={StaticResource BoolToVis}}">
@@ -568,13 +582,33 @@
                         BorderBrush="#1E3A50" BorderThickness="0,1,0,0">
                     <Grid Margin="12,8">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="8"/>
-                            <ColumnDefinition Width="44"/>
+                            <ColumnDefinition Width="36"/>  <!-- play-as portrait -->
                             <ColumnDefinition Width="6"/>
-                            <ColumnDefinition Width="44"/>
+                            <ColumnDefinition Width="*"/>   <!-- text input -->
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="44"/>  <!-- voice toggle -->
+                            <ColumnDefinition Width="6"/>
+                            <ColumnDefinition Width="44"/>  <!-- send -->
                         </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Background="#111E2A"
+
+                        <!-- Play-as button -->
+                        <Button x:Name="PlayAsBtn" Grid.Column="0"
+                                Background="Transparent" BorderThickness="0"
+                                Cursor="Hand" Click="PlayAsBtn_Click"
+                                ToolTip="Play as character…">
+                            <Border Width="36" Height="36" CornerRadius="18"
+                                    Background="#1E3A50" ClipToBounds="True">
+                                <Grid>
+                                    <TextBlock Text="{Binding PlayAsInitial}"
+                                               Foreground="#C8A020" FontSize="13" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Image Source="{Binding PlayAsPortrait}" Stretch="UniformToFill"/>
+                                </Grid>
+                            </Border>
+                        </Button>
+
+                        <!-- Text input -->
+                        <Border Grid.Column="2" Background="#111E2A"
                                 CornerRadius="4" BorderBrush="#1E3A50" BorderThickness="1">
                             <TextBox x:Name="InputBox"
                                      Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
@@ -584,16 +618,97 @@
                                      IsEnabled="{Binding HasActiveCharacter}"
                                      KeyDown="InputBox_KeyDown"/>
                         </Border>
-                        <ToggleButton Grid.Column="2" Content="🔊"
+                        <ToggleButton Grid.Column="4" Content="🔊"
                                       Style="{StaticResource VoiceToggleBtn}"
                                       IsChecked="{Binding IsVoiceEnabled}"
                                       ToolTip="Toggle voice"/>
-                        <Button Grid.Column="4" Content="▶"
+                        <Button Grid.Column="6" Content="▶"
                                 Style="{StaticResource ActionBtn}"
                                 Command="{Binding SendCommand}"
                                 ToolTip="Send (Enter)"/>
                     </Grid>
                 </Border>
+
+                <!-- Play-as picker popup -->
+                <Popup x:Name="PlayAsPopup"
+                       PlacementTarget="{Binding ElementName=PlayAsBtn}"
+                       Placement="Top" StaysOpen="False"
+                       AllowsTransparency="True">
+                    <Border Background="#0A1018" BorderBrush="#C8A020" BorderThickness="1"
+                            MinWidth="200" MaxHeight="320" Effect="{x:Null}">
+                        <StackPanel>
+                            <!-- "Player" default option -->
+                            <Button Click="PlayAsPlayer_Click" Background="Transparent"
+                                    BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Left">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                                Padding="10,8">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="28" Height="28" CornerRadius="14"
+                                                        Background="#1E3A50" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                    <TextBlock Text="{Binding PlayAsInitial}"
+                                                               Foreground="#C8A020" FontSize="11" FontWeight="Bold"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </Border>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding PlayAsName}"
+                                                               Foreground="#D4C5A0" FontSize="12"/>
+                                                    <TextBlock Text="(default)" Foreground="#4A6070" FontSize="9"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Bd" Property="Background" Value="#111E2A"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <Border Height="1" Background="#1E3A50" Margin="8,0"/>
+
+                            <!-- Character list -->
+                            <ScrollViewer MaxHeight="260" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding AllCharactersFlat}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Tag="{Binding}" Click="PlayAsCharacter_Click"
+                                                    Background="Transparent" BorderThickness="0" Cursor="Hand">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                                                Padding="10,6">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Border Width="28" Height="28" CornerRadius="14"
+                                                                        Background="#1E3A50" ClipToBounds="True"
+                                                                        VerticalAlignment="Center" Margin="0,0,8,0">
+                                                                    <Image Source="{Binding Portrait}" Stretch="UniformToFill"/>
+                                                                </Border>
+                                                                <StackPanel VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding DisplayName}"
+                                                                               Foreground="#D4C5A0" FontSize="12"/>
+                                                                    <TextBlock Text="{Binding CategoryBadge}"
+                                                                               Foreground="#4A6070" FontSize="9"/>
+                                                                </StackPanel>
+                                                            </StackPanel>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#111E2A"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </StackPanel>
+                    </Border>
+                </Popup>
             </Grid>
         </Grid>
     </Grid>

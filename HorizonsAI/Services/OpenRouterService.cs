@@ -13,14 +13,14 @@ public class OpenRouterService
 
     // ── Single character chat ──────────────────────────────────────────────────
 
-    public async Task<List<string>> ChatAsync(Character character, IEnumerable<ChatMessage> history, string userMessage)
+    public async Task<List<string>> ChatAsync(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs = null)
     {
         var apiKey = AppConfig.Current.OpenRouterApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
             return ["(No OpenRouter API key set — open Settings to add one.)"];
 
         var model    = string.IsNullOrWhiteSpace(character.Model) ? AppConfig.Current.DefaultModel : character.Model;
-        var messages = BuildSingleMessages(character, history, userMessage);
+        var messages = BuildSingleMessages(character, history, userMessage, playAs);
         var text     = await SendAsync(model, messages);
 
         if (string.IsNullOrEmpty(text)) return ["…"];
@@ -37,7 +37,8 @@ public class OpenRouterService
         Party party,
         IEnumerable<Character> members,
         IEnumerable<ChatMessage> history,
-        string userMessage)
+        string userMessage,
+        Character? playAs = null)
     {
         var apiKey = AppConfig.Current.OpenRouterApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
@@ -45,7 +46,7 @@ public class OpenRouterService
 
         var memberList = members.ToList();
         var model      = AppConfig.Current.DefaultModel;
-        var messages   = BuildPartyMessages(party, memberList, history, userMessage);
+        var messages   = BuildPartyMessages(party, memberList, history, userMessage, playAs);
         var text       = await SendAsync(model, messages);
 
         if (string.IsNullOrEmpty(text)) return [("", "…")];
@@ -87,21 +88,45 @@ public class OpenRouterService
         return result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? "";
     }
 
-    private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage)
+    private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs)
     {
+        var system = character.SystemPrompt ?? "";
+        if (playAs != null)
+        {
+            system += $"\n\n---\nYou are speaking with {playAs.Name}.";
+            if (!string.IsNullOrWhiteSpace(playAs.SystemPrompt))
+                system += $"\n{playAs.SystemPrompt}";
+        }
+
         var msgs = new List<object>();
-        if (!string.IsNullOrWhiteSpace(character.SystemPrompt))
-            msgs.Add(new { role = "system", content = character.SystemPrompt });
+        if (!string.IsNullOrWhiteSpace(system))
+            msgs.Add(new { role = "system", content = system });
+
         foreach (var msg in history)
-            msgs.Add(new { role = msg.IsPlayer ? "user" : "assistant", content = msg.Text });
-        msgs.Add(new { role = "user", content = userMessage });
+        {
+            var content = msg.IsPlayer && !string.IsNullOrEmpty(msg.SenderName)
+                ? $"{msg.SenderName}: {msg.Text}"
+                : msg.Text;
+            msgs.Add(new { role = msg.IsPlayer ? "user" : "assistant", content });
+        }
+
+        var current = playAs != null ? $"{playAs.Name}: {userMessage}" : userMessage;
+        msgs.Add(new { role = "user", content = current });
         return msgs;
     }
 
-    private static List<object> BuildPartyMessages(Party party, List<Character> members, IEnumerable<ChatMessage> history, string userMessage)
+    private static List<object> BuildPartyMessages(Party party, List<Character> members, IEnumerable<ChatMessage> history, string userMessage, Character? playAs)
     {
         var profiles = string.Join("\n\n", members.Select(m =>
             $"## {m.Name}\n{m.SystemPrompt}"));
+
+        var playerSection = "";
+        if (playAs != null)
+        {
+            playerSection = $"\n\nThe player is speaking as {playAs.Name}.";
+            if (!string.IsNullOrWhiteSpace(playAs.SystemPrompt))
+                playerSection += $"\n{playAs.SystemPrompt}";
+        }
 
         var system = $"""
             You are managing a collaborative roleplay with multiple characters.
@@ -109,6 +134,7 @@ public class OpenRouterService
             {profiles}
 
             {(string.IsNullOrWhiteSpace(party.Context) ? "" : $"Scene context: {party.Context}")}
+            {playerSection}
 
             When the player speaks, respond as whichever characters would naturally react.
             Not every character needs to respond — only those with something relevant to say.
@@ -122,11 +148,14 @@ public class OpenRouterService
 
         foreach (var msg in history)
         {
-            var content = msg.IsPlayer ? msg.Text : $"**{msg.SenderName}:** {msg.Text}";
+            var content = msg.IsPlayer && !string.IsNullOrEmpty(msg.SenderName)
+                ? $"{msg.SenderName}: {msg.Text}"
+                : $"**{msg.SenderName}:** {msg.Text}";
             msgs.Add(new { role = msg.IsPlayer ? "user" : "assistant", content });
         }
 
-        msgs.Add(new { role = "user", content = userMessage });
+        var currentMsg = playAs != null ? $"{playAs.Name}: {userMessage}" : userMessage;
+        msgs.Add(new { role = "user", content = currentMsg });
         return msgs;
     }
 

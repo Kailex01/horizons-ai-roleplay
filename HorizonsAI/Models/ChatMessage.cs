@@ -9,4 +9,5 @@ public class ChatMessage
     public BitmapImage? Portrait   { get; init; }
     public DateTime     Timestamp  { get; init; } = DateTime.Now;
     public string       TimeStr    => Timestamp.ToString("HH:mm");
+    public bool         HasPortrait => Portrait != null;
 }

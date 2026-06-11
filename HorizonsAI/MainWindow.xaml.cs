@@ -83,6 +83,24 @@ public partial class MainWindow : Window
         if (item != null) _vm.DeleteParty(item);
     }
 
+    // ── Play-as picker ────────────────────────────────────────────────────────
+
+    private void PlayAsBtn_Click(object sender, RoutedEventArgs e)
+        => PlayAsPopup.IsOpen = !PlayAsPopup.IsOpen;
+
+    private void PlayAsPlayer_Click(object sender, RoutedEventArgs e)
+    {
+        _vm.SetPlayAs(null);
+        PlayAsPopup.IsOpen = false;
+    }
+
+    private void PlayAsCharacter_Click(object sender, RoutedEventArgs e)
+    {
+        if (((FrameworkElement)sender).Tag is CharacterItem item)
+            _vm.SetPlayAs(item);
+        PlayAsPopup.IsOpen = false;
+    }
+
     // ── Dialogs ────────────────────────────────────────────────────────────────
 
     private void Settings_Click(object sender, RoutedEventArgs e)

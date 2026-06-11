@@ -92,6 +92,33 @@ public class MainViewModel : INotifyPropertyChanged
         => (IReadOnlyList<CharacterItem>?)_selectedParty?.Members
            ?? Array.Empty<CharacterItem>();
 
+    // ── Play-as ────────────────────────────────────────────────────────────────
+
+    private CharacterItem? _playAsCharacter;
+    public CharacterItem? PlayAsCharacter
+    {
+        get => _playAsCharacter;
+        private set
+        {
+            _playAsCharacter = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(PlayAsName));
+            OnPropertyChanged(nameof(PlayAsPortrait));
+            OnPropertyChanged(nameof(PlayAsInitial));
+        }
+    }
+
+    public string       PlayAsName    => _playAsCharacter?.Character.Name ?? AppConfig.Current.SpeakerName;
+    public BitmapImage? PlayAsPortrait => _playAsCharacter?.Portrait;
+    public string       PlayAsInitial  => PlayAsName.Length > 0 ? PlayAsName[0].ToString().ToUpper() : "P";
+
+    public void SetPlayAs(CharacterItem? item) => PlayAsCharacter = item;
+
+    // ── All characters flat (for play-as picker) ───────────────────────────────
+
+    private List<CharacterItem> _allCharactersFlat = new();
+    public IReadOnlyList<CharacterItem> AllCharactersFlat => _allCharactersFlat;
+
     // ── Messages ───────────────────────────────────────────────────────────────
 
     private ObservableCollection<ChatMessage> _messages = new();
@@ -168,8 +195,9 @@ public class MainViewModel : INotifyPropertyChanged
 
     public void LoadCharacters()
     {
-        var previousCharId = _selectedCharacter?.Character.Id;
-        var allChars       = CharacterService.LoadAll();
+        var previousCharId  = _selectedCharacter?.Character.Id;
+        var previousPlayAsId = _playAsCharacter?.Character.Id;
+        var allChars        = CharacterService.LoadAll();
 
         Categories.Clear();
 
@@ -181,13 +209,20 @@ public class MainViewModel : INotifyPropertyChanged
             Categories.Add(cat);
         }
 
+        _allCharactersFlat = Categories.SelectMany(g => g.Characters).ToList();
+        OnPropertyChanged(nameof(AllCharactersFlat));
+
         // Restore character selection
         if (previousCharId != null)
         {
-            var match = Categories.SelectMany(g => g.Characters)
-                                  .FirstOrDefault(i => i.Character.Id == previousCharId);
+            var match = _allCharactersFlat.FirstOrDefault(i => i.Character.Id == previousCharId);
             if (match != null) SelectedCharacter = match;
         }
+
+        // Restore play-as selection (or clear if the character was deleted)
+        PlayAsCharacter = previousPlayAsId != null
+            ? _allCharactersFlat.FirstOrDefault(i => i.Character.Id == previousPlayAsId)
+            : null;
 
         StatusText = Categories.Count == 0
             ? "No characters yet — click [+] to add one."
@@ -269,7 +304,8 @@ public class MainViewModel : INotifyPropertyChanged
         {
             Text       = text,
             IsPlayer   = true,
-            SenderName = AppConfig.Current.SpeakerName,
+            SenderName = PlayAsName,
+            Portrait   = PlayAsPortrait,
             Timestamp  = DateTime.Now,
         });
         ScrollToBottom?.Invoke();
@@ -294,7 +330,7 @@ public class MainViewModel : INotifyPropertyChanged
     private async Task SendToCharacterAsync(CharacterItem charItem, string text)
     {
         StatusText = $"{charItem.DisplayName} is thinking…";
-        var lines      = await _openRouter.ChatAsync(charItem.Character, Messages.SkipLast(0), text);
+        var lines      = await _openRouter.ChatAsync(charItem.Character, Messages.SkipLast(0), text, _playAsCharacter?.Character);
         var charName   = charItem.DisplayName;
         var voiceModel = charItem.Character.VoiceModel;
 
@@ -321,7 +357,7 @@ public class MainViewModel : INotifyPropertyChanged
         StatusText = $"{partyItem.DisplayName} is responding…";
 
         var members  = partyItem.Members.Select(m => m.Character);
-        var replies  = await _openRouter.ChatPartyAsync(partyItem.Party, members, Messages.SkipLast(0), text);
+        var replies  = await _openRouter.ChatPartyAsync(partyItem.Party, members, Messages.SkipLast(0), text, _playAsCharacter?.Character);
 
         var portraitMap = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Portrait);
         var voiceMap    = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.VoiceModel);
