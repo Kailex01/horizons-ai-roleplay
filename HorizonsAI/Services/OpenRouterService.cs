@@ -42,11 +42,7 @@ public class OpenRouterService
         var text     = await SendAsync(model, messages);
 
         if (string.IsNullOrEmpty(text)) return ["…"];
-
-        return text.Split("\n\n", StringSplitOptions.RemoveEmptyEntries)
-                   .Select(s => s.Trim())
-                   .Where(s => !string.IsNullOrEmpty(s))
-                   .ToList();
+        return [text.Trim()];
     }
 
     // ── Party chat ─────────────────────────────────────────────────────────────
@@ -95,13 +91,13 @@ public class OpenRouterService
 
     // ── Internals ──────────────────────────────────────────────────────────────
 
-    private async Task<string> SendAsync(string model, List<object> messages)
+    private async Task<string> SendAsync(string model, List<object> messages, int maxTokens = 400)
     {
         var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/chat/completions");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", AppConfig.Current.OpenRouterApiKey);
         request.Headers.Add("HTTP-Referer", "https://github.com/Kailex01/horizons-ai-roleplay");
         request.Headers.Add("X-Title", "Horizon's AI");
-        request.Content = JsonContent.Create(new { model, messages });
+        request.Content = JsonContent.Create(new { model, messages, max_tokens = maxTokens });
 
         var resp   = await _http.SendAsync(request);
         resp.EnsureSuccessStatusCode();
@@ -131,7 +127,7 @@ public class OpenRouterService
             new { role = "user",   content }
         };
 
-        return await SendAsync(AppConfig.Current.DefaultModel, apiMessages);
+        return await SendAsync(AppConfig.Current.DefaultModel, apiMessages, maxTokens: 600);
     }
 
     private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory, IReadOnlyList<LoreEntry>? lore, string? authorsNote)
