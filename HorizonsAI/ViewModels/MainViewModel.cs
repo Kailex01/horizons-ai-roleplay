@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using HorizonsAI.Models;
 using HorizonsAI.Services;
 
@@ -11,19 +12,23 @@ public class MainViewModel : INotifyPropertyChanged
     private readonly NarratorService   _narrator;
     private readonly Dictionary<string, ObservableCollection<ChatMessageVm>> _conversations = new();
     private readonly Dictionary<string, string>          _memory    = new();
-    private readonly Dictionary<string, List<SceneNpc>>  _sceneNpcs = new();
+    private readonly Dictionary<string, List<SceneNpc>>  _sceneNpcs       = new();
+    private readonly Dictionary<string, int>            _sceneDc         = new();
+    private readonly Dictionary<string, string>         _sceneDifficulty = new();
+    private static readonly Random                      _rng             = new();
     private Lorebook _lorebook = new();
-    private CancellationTokenSource _ttsCts          = new();
-    private Task                     _npcVoiceTask    = Task.CompletedTask;
+    private CancellationTokenSource _ttsCts       = new();
+    private Task                     _npcVoiceTask = Task.CompletedTask;
 
     private const int SummarizeThreshold = 40;
     private const int KeepRecentCount    = 20;
 
     // ── Sidebar ────────────────────────────────────────────────────────────────
 
-    public ObservableCollection<CategoryGroup> Categories        { get; } = new();
-    public ObservableCollection<PartyItem>     Parties           { get; } = new();
-    public ObservableCollection<SceneNpc>      CurrentSceneNpcs  { get; } = new();
+    public ObservableCollection<CategoryGroup> Categories       { get; } = new();
+    public ObservableCollection<PartyItem>     Parties          { get; } = new();
+    public ObservableCollection<SceneItem>     Scenes           { get; } = new();
+    public ObservableCollection<SceneNpc>      CurrentSceneNpcs { get; } = new();
     public bool HasSceneNpcs => CurrentSceneNpcs.Count > 0;
 
     // ── Selected character ─────────────────────────────────────────────────────
@@ -82,6 +87,30 @@ public class MainViewModel : INotifyPropertyChanged
 
     public ICommand SelectPartyCommand { get; }
 
+    // ── Selected scene ─────────────────────────────────────────────────────────
+
+    private SceneItem? _selectedScene;
+    public SceneItem? SelectedScene
+    {
+        get => _selectedScene;
+        set
+        {
+            if (_selectedScene == value) return;
+            if (_selectedScene != null) _selectedScene.IsSelected = false;
+            _selectedScene = value;
+            if (_selectedScene != null)
+            {
+                _selectedScene.IsSelected = true;
+                if (_selectedCharacter != null) { _selectedCharacter.IsSelected = false; _selectedCharacter = null; OnPropertyChanged(nameof(SelectedCharacter)); }
+                if (_selectedParty    != null) { _selectedParty.IsSelected    = false; _selectedParty    = null; OnPropertyChanged(nameof(SelectedParty));    }
+            }
+            NotifyActiveChanged();
+            SwitchConversation();
+        }
+    }
+
+    public ICommand SelectSceneCommand { get; }
+
     // ── Active header properties ───────────────────────────────────────────────
 
     public BitmapImage? ActivePortrait
@@ -91,14 +120,18 @@ public class MainViewModel : INotifyPropertyChanged
     public string ActiveCharacterName
         => _selectedCharacter?.DisplayName
            ?? _selectedParty?.DisplayName
-           ?? "Select a character or party";
+           ?? _selectedScene?.DisplayName
+           ?? "Select a character, party, or scene";
 
     public string ActiveCategoryBadge
         => _selectedCharacter?.CategoryBadge
-           ?? (_selectedParty != null ? "PARTY" : "");
+           ?? (_selectedParty != null ? "PARTY"
+           : _selectedScene   != null ? "SCENE"
+           : "");
 
-    public bool HasActiveCharacter => _selectedCharacter != null || _selectedParty != null;
+    public bool HasActiveCharacter => _selectedCharacter != null || _selectedParty != null || _selectedScene != null;
     public bool IsPartyActive      => _selectedParty != null;
+    public bool IsSceneActive      => _selectedScene != null;
 
     public IReadOnlyList<CharacterItem> ActivePartyMembers
         => (IReadOnlyList<CharacterItem>?)_selectedParty?.Members
@@ -281,6 +314,9 @@ public class MainViewModel : INotifyPropertyChanged
 
         SelectPartyCommand = new RelayCommand(
             p => { if (p is PartyItem item) SelectedParty = item; return Task.CompletedTask; });
+
+        SelectSceneCommand = new RelayCommand(
+            p => { if (p is SceneItem item) SelectedScene = item; return Task.CompletedTask; });
     }
 
     // ── Character management ───────────────────────────────────────────────────
@@ -373,6 +409,55 @@ public class MainViewModel : INotifyPropertyChanged
         LoadParties();
     }
 
+    // ── Scene management ───────────────────────────────────────────────────────
+
+    public void LoadScenes()
+    {
+        var prevId = _selectedScene?.Scene.Id;
+        Scenes.Clear();
+        foreach (var s in SceneService.LoadAll())
+            Scenes.Add(new SceneItem(s));
+
+        if (prevId != null)
+        {
+            var match = Scenes.FirstOrDefault(s => s.Scene.Id == prevId);
+            if (match != null)
+            {
+                match.IsSelected = true;
+                _selectedScene   = match;
+                NotifyActiveChanged();
+            }
+        }
+    }
+
+    public void DeleteScene(SceneItem item)
+    {
+        var key = $"scene_{item.Scene.Id}";
+        SceneService.Delete(item.Scene);
+        ChatLogService.Delete(key);
+        _conversations.Remove(key);
+        _memory.Remove(key);
+        _sceneNpcs.Remove(key);
+        _sceneDc.Remove(key);
+        _sceneDifficulty.Remove(key);
+        if (SelectedScene == item) SelectedScene = null;
+        LoadScenes();
+    }
+
+    public void PromoteSceneNpc(SceneNpc npc)
+    {
+        if (npc.CharacterId == null) return;
+        var existing = _allCharactersFlat.FirstOrDefault(c => c.Character.Id == npc.CharacterId);
+        if (existing == null) return;
+
+        var oldPath = Path.Combine(AppConfig.CharactersFolder, existing.Character.Category, $"{existing.Character.Id}.json");
+        existing.Character.Category = "npcs";
+        CharacterService.Save(existing.Character);
+        if (File.Exists(oldPath)) File.Delete(oldPath);
+
+        LoadCharacters();
+    }
+
     public void LoadLorebook() => _lorebook = LorebookService.Load();
 
     public void OnSettingsChanged()
@@ -434,7 +519,8 @@ public class MainViewModel : INotifyPropertyChanged
 
     private string? ConversationKey()
         => _selectedCharacter?.Character.Id
-           ?? (_selectedParty != null ? $"party_{_selectedParty.Party.Id}" : null);
+           ?? (_selectedParty  != null ? $"party_{_selectedParty.Party.Id}"   : null)
+           ?? (_selectedScene  != null ? $"scene_{_selectedScene.Scene.Id}"   : null);
 
     // ── Send message ───────────────────────────────────────────────────────────
 
@@ -445,9 +531,10 @@ public class MainViewModel : INotifyPropertyChanged
         var key = ConversationKey();
         if (key is null) return;
 
-        var text = InputText.Trim();
-        InputText = "";
-        IsSending = true;
+        var rawText = InputText.Trim();
+        InputText   = "";
+        var text    = ResolveChecks(rawText, key);
+        IsSending   = true;
 
         Messages.Add(new ChatMessageVm(new ChatMessage
         {
@@ -466,6 +553,8 @@ public class MainViewModel : INotifyPropertyChanged
                 await SendToCharacterAsync(_selectedCharacter, key, text);
             else if (_selectedParty != null)
                 await SendToPartyAsync(_selectedParty, key, text);
+            else if (_selectedScene != null)
+                await SendToSceneAsync(_selectedScene, key, text);
         }
         catch (Exception ex)
         {
@@ -501,6 +590,8 @@ public class MainViewModel : INotifyPropertyChanged
                 await SendToCharacterAsync(_selectedCharacter, key, lastText);
             else if (_selectedParty != null)
                 await SendToPartyAsync(_selectedParty, key, lastText);
+            else if (_selectedScene != null)
+                await SendToSceneAsync(_selectedScene, key, lastText);
         }
         catch (Exception ex)
         {
@@ -764,9 +855,128 @@ public class MainViewModel : INotifyPropertyChanged
         _ = FireNarratorAsync(key);
     }
 
+    private async Task SendToSceneAsync(SceneItem sceneItem, string key, string text)
+    {
+        StatusText = "Scene is responding…";
+
+        if (!_sceneNpcs.TryGetValue(key, out var sceneMembers) || sceneMembers.Count == 0)
+        {
+            StatusText = "";
+            AutoSave(key);
+            _ = FireNarratorAsync(key, forceEnabled: true);
+            return;
+        }
+
+        var memory  = GetMemory(key);
+        var lore    = OpenRouterService.MatchLore(Messages.Select(vm => vm.Message), text, _lorebook.Entries);
+        var members = sceneMembers.Select(n => (n.Name, n.Personality)).ToList<(string Name, string SystemPrompt)>();
+
+        var replies = await _openRouter.ChatPartyAsync(
+            sceneItem.Scene.Context ?? "",
+            members,
+            Messages.SkipLast(1).Select(vm => vm.Message),
+            text,
+            _playAsCharacter?.Character,
+            memory,
+            lore,
+            _authorsNote);
+
+        var profileMap = new Dictionary<string, VoiceProfile>();
+        foreach (var npc in sceneMembers)
+        {
+            if (npc.CharacterId != null)
+            {
+                var charItem = _allCharactersFlat.FirstOrDefault(c => c.Character.Id == npc.CharacterId);
+                if (charItem != null) profileMap[npc.Name] = charItem.Character.VoiceProfile;
+            }
+        }
+
+        int totalAdded = 0;
+        foreach (var (name, msg) in replies)
+        {
+            foreach (var (segText, isAction) in KokoroService.ParseSegments(msg))
+            {
+                Messages.Add(new ChatMessageVm(new ChatMessage
+                {
+                    Text             = segText,
+                    IsPlayer         = false,
+                    IsNarratorAction = isAction,
+                    SenderName       = isAction ? "" : name,
+                    Timestamp        = DateTime.Now,
+                }));
+                totalAdded++;
+            }
+        }
+        ScrollToBottom?.Invoke();
+        StatusText = "";
+        if (_openRouter.LastUsage is { } up)
+            TokenUsageText = $"prompt {up.PromptTokens:N0}  ·  reply {up.CompletionTokens:N0}  ·  total {up.TotalTokens:N0} tokens";
+        OnPropertyChanged(nameof(CanRegenerate));
+
+        if (IsVoiceEnabled && replies.Count > 0)
+        {
+            _ttsCts.Cancel();
+            _ttsCts = new CancellationTokenSource();
+            var ct = _ttsCts.Token;
+            var synthMsgs = Messages.TakeLast(totalAdded).Where(m => !m.IsNarratorAction).ToList();
+            foreach (var m in synthMsgs) m.IsSynthesizing = true;
+
+            var voiceTask = Task.Run(async () =>
+            {
+                var narratorFallback = AppConfig.Current.NarratorVoiceProfile;
+                foreach (var (name, msg) in replies)
+                {
+                    if (ct.IsCancellationRequested) break;
+                    VoiceProfile? profile = profileMap.TryGetValue(name, out var p) && p.IsEnabled ? p : null;
+                    profile ??= narratorFallback.IsEnabled ? narratorFallback : null;
+                    if (profile == null) continue;
+                    await _kokoro.SpeakAsync(msg, profile, narratorFallback, ct).ConfigureAwait(false);
+                }
+            }, ct);
+            _npcVoiceTask = voiceTask;
+            _ = voiceTask.ContinueWith(t =>
+            {
+                var ex = t.Exception?.GetBaseException();
+                Application.Current.Dispatcher.InvokeAsync(() =>
+                {
+                    foreach (var m in synthMsgs) m.IsSynthesizing = false;
+                    if (t.IsFaulted)
+                        StatusText = $"Voice error: {ex?.GetType().Name}: {ex?.Message} @ {ex?.StackTrace?.Split('\n').FirstOrDefault()?.Trim()}";
+                });
+            }, TaskScheduler.Default);
+        }
+
+        AutoSave(key);
+        if (Messages.Count > SummarizeThreshold)
+            await TrySummarizeAsync(key);
+        _ = FireNarratorAsync(key, forceEnabled: true);
+    }
+
+    // ── Skill checks ───────────────────────────────────────────────────────────
+
+    private string ResolveChecks(string text, string key)
+    {
+        return Regex.Replace(text, @"\[Check\s+(Str|Dex|Con|Int|Wis|Cha)\]",
+            m =>
+            {
+                var stat        = m.Groups[1].Value;
+                var dc          = _sceneDc.TryGetValue(key, out var d) ? d : 12;
+                var diff        = _sceneDifficulty.TryGetValue(key, out var df) ? df.ToLower() : "normal";
+                var effectiveDc = diff switch { "easy" => dc - 2, "hard" => dc + 2, _ => dc };
+
+                var mod    = _playAsCharacter?.Character.Stats.GetMod(stat) ?? 0;
+                var roll   = _rng.Next(1, 21);
+                var total  = roll + mod;
+                var result = total >= effectiveDc ? "SUCCESS" : "FAIL";
+                var modStr = mod >= 0 ? $"+{mod}" : $"{mod}";
+                return $"[{stat} Check: {roll}{modStr}={total} vs DC{effectiveDc} — {result}]";
+            },
+            RegexOptions.IgnoreCase);
+    }
+
     // ── Narrator / GM ──────────────────────────────────────────────────────────
 
-    private async Task FireNarratorAsync(string key)
+    private async Task FireNarratorAsync(string key, bool forceEnabled = false)
     {
         // Capture synchronously before any awaits — prevents mid-flight conversation-switch races
         if (!_conversations.TryGetValue(key, out var convoVms)) return;
@@ -775,8 +985,11 @@ public class MainViewModel : INotifyPropertyChanged
         var ct            = _ttsCts.Token;
         var npcVoiceSnap  = _npcVoiceTask;
 
-        var result = await _narrator.EvaluateAsync(historySnap, npcNames);
+        var result = await _narrator.EvaluateAsync(historySnap, npcNames, forceEnabled);
         if (result == null) return;
+
+        if (result.Dc.HasValue)        _sceneDc[key]         = result.Dc.Value;
+        if (result.Difficulty != null) _sceneDifficulty[key] = result.Difficulty;
 
         // For each newly introduced NPC, generate a full character system prompt and save
         bool anyNewCharacters = false;
@@ -792,9 +1005,9 @@ public class MainViewModel : INotifyPropertyChanged
                     continue;
                 }
 
-                var prompt = await _narrator.GenerateCharacterPromptAsync(
+                var draft = await _narrator.GenerateCharacterPromptAsync(
                     sceneNpc.Name, sceneNpc.Personality, historySnap);
-                if (!string.IsNullOrEmpty(prompt))
+                if (draft != null)
                 {
                     CharacterService.Save(new Character
                     {
@@ -802,9 +1015,10 @@ public class MainViewModel : INotifyPropertyChanged
                         Name         = sceneNpc.Name,
                         Category     = "scene_npcs",
                         Enabled      = true,
-                        SystemPrompt = prompt,
+                        SystemPrompt = draft.SystemPrompt,
+                        Stats        = draft.Stats,
                     });
-                    sceneNpc.Personality  = prompt;
+                    sceneNpc.Personality  = draft.SystemPrompt;
                     sceneNpc.CharacterId  = id;
                     anyNewCharacters      = true;
                 }
@@ -947,6 +1161,7 @@ public class MainViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(ActiveCategoryBadge));
         OnPropertyChanged(nameof(HasActiveCharacter));
         OnPropertyChanged(nameof(IsPartyActive));
+        OnPropertyChanged(nameof(IsSceneActive));
         OnPropertyChanged(nameof(ActivePartyMembers));
         OnPropertyChanged(nameof(CanRegenerate));
     }

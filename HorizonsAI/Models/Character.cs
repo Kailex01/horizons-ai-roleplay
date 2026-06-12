@@ -9,7 +9,8 @@ public class Character
     [JsonPropertyName("system_prompt")] public string  SystemPrompt { get; set; } = "";
     [JsonPropertyName("model")]         public string  Model        { get; set; } = "";
     [JsonPropertyName("voice_profile")]  public VoiceProfile VoiceProfile { get; set; } = new();
-    [JsonPropertyName("portrait")]      public string? Portrait     { get; set; }
+    [JsonPropertyName("portrait")]      public string?   Portrait     { get; set; }
+    [JsonPropertyName("stats")]         public StatBlock Stats        { get; set; } = new();
 
     [JsonIgnore] public string DisplayName   => Name;
     [JsonIgnore] public string CategoryBadge => Category.Replace('_', ' ').ToUpper();

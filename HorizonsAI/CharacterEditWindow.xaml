@@ -236,6 +236,57 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Ability Scores -->
+                <TextBlock Text="ABILITY SCORES" Style="{StaticResource FieldLabel}" Margin="0,4,0,3"/>
+                <Border Background="#080E14" CornerRadius="4"
+                        BorderBrush="#1E3A50" BorderThickness="1"
+                        Padding="10,8" Margin="0,0,0,14">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="STR" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="StrBox" Style="{StaticResource FieldBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="DEX" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="DexBox" Style="{StaticResource FieldBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="CON" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="ConBox" Style="{StaticResource FieldBox}"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="8"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="INT" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="IntBox" Style="{StaticResource FieldBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="WIS" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="WisBox" Style="{StaticResource FieldBox}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="CHA" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="ChaBox" Style="{StaticResource FieldBox}"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
                 <!-- Enabled -->
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                     <CheckBox x:Name="EnabledBox" IsChecked="True"

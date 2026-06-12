@@ -23,6 +23,7 @@ public partial class MainWindow : Window
         Loaded += (_, _) =>
         {
             _vm.LoadCharacters(); // LoadCharacters calls LoadParties internally
+            _vm.LoadScenes();
             if (KokoroService.IsModelReady)
             {
                 try { _vm.InitializeTts(); }
@@ -133,6 +134,34 @@ public partial class MainWindow : Window
     {
         var item = GetContextItem<PartyItem>(sender);
         if (item != null) _vm.DeleteParty(item);
+    }
+
+    // ── Scene sidebar ──────────────────────────────────────────────────────────
+
+    private void AddScene_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new SceneEditWindow { Owner = this };
+        if (dlg.ShowDialog() == true) _vm.LoadScenes();
+    }
+
+    private void EditScene_Click(object sender, RoutedEventArgs e)
+    {
+        var item = GetContextItem<SceneItem>(sender);
+        if (item is null) return;
+        var dlg = new SceneEditWindow(item.Scene) { Owner = this };
+        if (dlg.ShowDialog() != null) _vm.LoadScenes();
+    }
+
+    private void DeleteScene_Click(object sender, RoutedEventArgs e)
+    {
+        var item = GetContextItem<SceneItem>(sender);
+        if (item != null) _vm.DeleteScene(item);
+    }
+
+    private void PromoteSceneNpc_Click(object sender, RoutedEventArgs e)
+    {
+        var npc = GetContextItem<SceneNpc>(sender);
+        if (npc != null) _vm.PromoteSceneNpc(npc);
     }
 
     // ── Play-as picker ────────────────────────────────────────────────────────

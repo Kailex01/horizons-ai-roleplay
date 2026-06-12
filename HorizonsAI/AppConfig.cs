@@ -9,6 +9,7 @@ public static class AppConfig
     public static readonly string CharactersFolder = Path.Combine(DataFolder, "characters");
     public static readonly string PortraitsFolder  = Path.Combine(DataFolder, "portraits");
     public static readonly string PartiesFolder    = Path.Combine(DataFolder, "parties");
+    public static readonly string ScenesFolder     = Path.Combine(DataFolder, "scenes");
     public static readonly string ChatLogsFolder   = Path.Combine(DataFolder, "chatlogs");
     public static readonly string TtsFolder        = Path.Combine(DataFolder, "tts");
     public static readonly string SettingsFile     = Path.Combine(DataFolder, "settings.json");
@@ -37,6 +38,7 @@ public static class AppConfig
         Directory.CreateDirectory(CharactersFolder);
         Directory.CreateDirectory(PortraitsFolder);
         Directory.CreateDirectory(PartiesFolder);
+        Directory.CreateDirectory(ScenesFolder);
         Directory.CreateDirectory(ChatLogsFolder);
         Directory.CreateDirectory(TtsFolder);
     }

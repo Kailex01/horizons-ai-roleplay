@@ -7,7 +7,11 @@ namespace HorizonsAI.Services;
 public record NarratorResult(
     string?        Narration,
     List<SceneNpc> Add,
-    List<string>   Remove);
+    List<string>   Remove,
+    int?           Dc,
+    string?        Difficulty);
+
+public record CharacterDraft(string SystemPrompt, StatBlock Stats);
 
 public class NarratorService
 {
@@ -17,10 +21,11 @@ public class NarratorService
 
     public async Task<NarratorResult?> EvaluateAsync(
         IEnumerable<ChatMessage> history,
-        IEnumerable<string> activeNpcNames)
+        IEnumerable<string> activeNpcNames,
+        bool forceEnabled = false)
     {
         var settings = AppConfig.Current;
-        if (!settings.NarratorEnabled) return null;
+        if (!settings.NarratorEnabled && !forceEnabled) return null;
 
         var apiKey = settings.OpenRouterApiKey;
         if (string.IsNullOrWhiteSpace(apiKey)) return null;
@@ -68,12 +73,12 @@ public class NarratorService
         }
     }
 
-    public async Task<string> GenerateCharacterPromptAsync(
+    public async Task<CharacterDraft?> GenerateCharacterPromptAsync(
         string name, string personality, IEnumerable<ChatMessage> recentHistory)
     {
         var settings = AppConfig.Current;
         var apiKey   = settings.OpenRouterApiKey;
-        if (string.IsNullOrWhiteSpace(apiKey)) return "";
+        if (string.IsNullOrWhiteSpace(apiKey)) return null;
 
         var model = string.IsNullOrWhiteSpace(settings.NarratorModel)
             ? settings.DefaultModel
@@ -89,15 +94,18 @@ public class NarratorService
         var apiMessages = new List<object>
         {
             new { role = "system", content =
-                "You create concise roleplay character system prompts. " +
-                "Write as direct instructions to the LLM that will roleplay as this character (e.g. 'You are...'). " +
-                "3-5 sentences covering personality, speech style, motivations, and how they fit the scene. " +
-                "Stay consistent with the scene context and world tone. Output only the system prompt, no preamble." },
+                "You create roleplay character profiles. Return ONLY a JSON object, no other text:\n" +
+                "{\n" +
+                "  \"prompt\": \"You are [Name]... (3-5 sentences: personality, speech style, motivations, role in scene)\",\n" +
+                "  \"stats\": { \"str\": 10, \"dex\": 10, \"con\": 10, \"int\": 10, \"wis\": 10, \"cha\": 10 }\n" +
+                "}\n" +
+                "Stats should reflect the character (average human=10, range 6-18). " +
+                "A barkeep might have CON 13, CHA 12. A guard has STR 13, CON 12. A scholar has INT 15. Etc." },
             new { role = "user", content =
                 $"Name: {name}\n" +
                 $"Personality sketch: {personality}\n\n" +
                 $"Recent scene context:\n{sceneContext}\n\n" +
-                "Write a system prompt for this character." },
+                "Generate the character profile JSON." },
         };
 
         try
@@ -107,25 +115,29 @@ public class NarratorService
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
             request.Headers.Add("HTTP-Referer", "https://github.com/Kailex01/horizons-ai-roleplay");
             request.Headers.Add("X-Title", "Horizon's AI");
-            request.Content = JsonContent.Create(new { model, messages = apiMessages, max_tokens = 300 });
+            request.Content = JsonContent.Create(new { model, messages = apiMessages, max_tokens = 400 });
 
             var resp = await _http.SendAsync(request);
-            if (!resp.IsSuccessStatusCode) return "";
+            if (!resp.IsSuccessStatusCode) return null;
 
-            var result = await resp.Content.ReadFromJsonAsync<OAIResponse>();
-            return result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? "";
+            var result  = await resp.Content.ReadFromJsonAsync<OAIResponse>();
+            var raw     = result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? "";
+            if (string.IsNullOrEmpty(raw)) return null;
+
+            return ParseCharacterDraft(raw);
         }
         catch
         {
-            return "";
+            return null;
         }
     }
+
+    // ── Parsers ────────────────────────────────────────────────────────────────
 
     private static NarratorResult? ParseResult(string json)
     {
         try
         {
-            // Strip markdown code fences some models add around JSON
             var stripped = Regex.Replace(json, @"^```(?:json)?\s*|\s*```$", "",
                 RegexOptions.Multiline).Trim();
 
@@ -164,14 +176,52 @@ public class NarratorService
                 }
             }
 
-            if (narration == null && add.Count == 0 && remove.Count == 0)
+            int? dc = null;
+            if (root.TryGetProperty("dc", out var dcEl) && dcEl.ValueKind == JsonValueKind.Number)
+                dc = dcEl.GetInt32();
+
+            string? difficulty = null;
+            if (root.TryGetProperty("difficulty", out var diffEl) && diffEl.ValueKind == JsonValueKind.String)
+                difficulty = diffEl.GetString();
+
+            if (narration == null && add.Count == 0 && remove.Count == 0 && dc == null)
                 return null;
 
-            return new NarratorResult(narration, add, remove);
+            return new NarratorResult(narration, add, remove, dc, difficulty);
         }
         catch
         {
             return null;
+        }
+    }
+
+    private static CharacterDraft? ParseCharacterDraft(string raw)
+    {
+        try
+        {
+            var stripped = Regex.Replace(raw, @"^```(?:json)?\s*|\s*```$", "",
+                RegexOptions.Multiline).Trim();
+            using var doc  = JsonDocument.Parse(stripped);
+            var       root = doc.RootElement;
+
+            var prompt = root.TryGetProperty("prompt", out var pEl) ? pEl.GetString() ?? "" : raw;
+            var stats  = new StatBlock();
+
+            if (root.TryGetProperty("stats", out var sEl))
+            {
+                if (sEl.TryGetProperty("str", out var v)) stats.Str = v.GetInt32();
+                if (sEl.TryGetProperty("dex", out v))     stats.Dex = v.GetInt32();
+                if (sEl.TryGetProperty("con", out v))     stats.Con = v.GetInt32();
+                if (sEl.TryGetProperty("int", out v))     stats.Int = v.GetInt32();
+                if (sEl.TryGetProperty("wis", out v))     stats.Wis = v.GetInt32();
+                if (sEl.TryGetProperty("cha", out v))     stats.Cha = v.GetInt32();
+            }
+
+            return new CharacterDraft(prompt, stats);
+        }
+        catch
+        {
+            return new CharacterDraft(raw, new StatBlock());
         }
     }
 

@@ -326,7 +326,9 @@
                     <RowDefinition Height="44"/>       <!-- Characters header -->
                     <RowDefinition Height="*"/>        <!-- Character list -->
                     <RowDefinition Height="44"/>       <!-- Parties header -->
-                    <RowDefinition Height="Auto" MaxHeight="220"/> <!-- Party list -->
+                    <RowDefinition Height="Auto" MaxHeight="180"/> <!-- Party list -->
+                    <RowDefinition Height="44"/>       <!-- Scenes header -->
+                    <RowDefinition Height="Auto" MaxHeight="180"/> <!-- Scene list -->
                 </Grid.RowDefinitions>
 
                 <!-- Characters header -->
@@ -431,6 +433,42 @@
                                                               RelativeSource={RelativeSource Self}}">
                                             <MenuItem Header="Edit"   Click="EditParty_Click"/>
                                             <MenuItem Header="Delete" Click="DeleteParty_Click"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Scenes header -->
+                <Border Grid.Row="4" Background="#080E14"
+                        BorderBrush="#1E3A50" BorderThickness="0,1,0,1">
+                    <Grid Margin="14,0,8,0">
+                        <TextBlock Text="SCENES" Foreground="#20A870"
+                                   FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Content="+" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Style="{StaticResource SidebarAddBtn}"
+                                Click="AddScene_Click" ToolTip="Add Scene"/>
+                    </Grid>
+                </Border>
+
+                <!-- Scene list -->
+                <ScrollViewer Grid.Row="5"
+                              VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl ItemsSource="{Binding Scenes}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource PartyRowBtn}"
+                                        Command="{Binding DataContext.SelectSceneCommand,
+                                                  RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}">
+                                    <Button.ContextMenu>
+                                        <ContextMenu DataContext="{Binding PlacementTarget.DataContext,
+                                                              RelativeSource={RelativeSource Self}}">
+                                            <MenuItem Header="Edit"   Click="EditScene_Click"/>
+                                            <MenuItem Header="Delete" Click="DeleteScene_Click"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
                                 </Button>
@@ -710,6 +748,12 @@
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
                                             <Border Padding="8,5">
+                                                <Border.ContextMenu>
+                                                    <ContextMenu DataContext="{Binding PlacementTarget.DataContext,
+                                                                          RelativeSource={RelativeSource Self}}">
+                                                        <MenuItem Header="Promote to NPC" Click="PromoteSceneNpc_Click"/>
+                                                    </ContextMenu>
+                                                </Border.ContextMenu>
                                                 <StackPanel Orientation="Horizontal">
                                                     <Border Width="24" Height="24" CornerRadius="12"
                                                             Background="#1A2830"

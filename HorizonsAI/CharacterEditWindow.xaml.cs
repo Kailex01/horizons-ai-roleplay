@@ -48,6 +48,14 @@ public partial class CharacterEditWindow : Window
         ModelBox.Text        = _character.Model;
         EnabledBox.IsChecked = _character.Enabled;
 
+        var st = _character.Stats;
+        StrBox.Text = st.Str.ToString();
+        DexBox.Text = st.Dex.ToString();
+        ConBox.Text = st.Con.ToString();
+        IntBox.Text = st.Int.ToString();
+        WisBox.Text = st.Wis.ToString();
+        ChaBox.Text = st.Cha.ToString();
+
         LoadVoiceProfile();
     }
 
@@ -208,6 +216,14 @@ public partial class CharacterEditWindow : Window
         _character.SystemPrompt = PromptBox.Text.Trim();
         _character.Model        = ModelBox.Text.Trim();
         _character.Enabled      = EnabledBox.IsChecked ?? true;
+
+        var st = _character.Stats;
+        if (int.TryParse(StrBox.Text, out var str)) st.Str = Math.Clamp(str, 1, 30);
+        if (int.TryParse(DexBox.Text, out var dex)) st.Dex = Math.Clamp(dex, 1, 30);
+        if (int.TryParse(ConBox.Text, out var con)) st.Con = Math.Clamp(con, 1, 30);
+        if (int.TryParse(IntBox.Text, out var int_)) st.Int = Math.Clamp(int_, 1, 30);
+        if (int.TryParse(WisBox.Text, out var wis)) st.Wis = Math.Clamp(wis, 1, 30);
+        if (int.TryParse(ChaBox.Text, out var cha)) st.Cha = Math.Clamp(cha, 1, 30);
 
         SaveVoiceProfile();
 
