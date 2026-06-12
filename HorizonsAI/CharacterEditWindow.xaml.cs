@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows.Input;
 using System.Windows.Media;
 using HorizonsAI.Models;
@@ -25,7 +26,17 @@ public partial class CharacterEditWindow : Window
 
     private const int MaxVoices = 5;
 
-    private static readonly string[] KokoroVoices =
+    // English v0.19 voices
+    private static readonly string[] VoicesEn =
+    [
+        "af", "af_bella", "af_nicole", "af_sarah", "af_sky",
+        "am_adam", "am_michael",
+        "bf_emma", "bf_isabella",
+        "bm_george", "bm_lewis",
+    ];
+
+    // Multilingual v1.0 voices (53 total)
+    private static readonly string[] VoicesV10 =
     [
         // American Female
         "af_alloy", "af_aoede", "af_bella", "af_heart", "af_jessica",
@@ -37,11 +48,48 @@ public partial class CharacterEditWindow : Window
         "bf_alice", "bf_emma", "bf_isabella", "bf_lily",
         // British Male
         "bm_daniel", "bm_fable", "bm_george", "bm_lewis",
+        // Spanish
+        "ef_dora", "em_alex",
+        // French
+        "ff_siwis",
+        // Hindi
+        "hf_alpha", "hf_beta", "hm_omega", "hm_psi",
+        // Italian
+        "if_sara", "im_nicola",
         // Japanese Female
         "jf_alpha", "jf_gongitsune", "jf_nezumi", "jf_tebukuro",
         // Japanese Male
         "jm_kumo",
+        // Portuguese
+        "pf_dora", "pm_alex", "pm_santa",
+        // Chinese Female
+        "zf_xiaobei", "zf_xiaoni", "zf_xiaoxiao", "zf_xiaoyi",
+        // Chinese Male
+        "zm_yunjian", "zm_yunxi", "zm_yunxia", "zm_yunyang",
     ];
+
+    // Multilingual v1.1 voices (103 total: 3 EN + 55 ZH-F + 45 ZH-M)
+    private static readonly string[] VoicesV11 = BuildVoicesV11();
+    private static string[] BuildVoicesV11()
+    {
+        var list = new System.Collections.Generic.List<string> { "af_maple", "af_sol", "bf_vale" };
+        for (int i = 1;  i <= 55; i++) list.Add($"zf_{i:000}");
+        for (int i = 9;  i <= 53; i++) list.Add($"zm_{i:000}");
+        return list.ToArray();
+    }
+
+    private static string[] GetKokoroVoices()
+    {
+        var markerFile = Path.Combine(AppConfig.TtsFolder, "model_type.txt");
+        var modelType  = File.Exists(markerFile) ? File.ReadAllText(markerFile).Trim() : "";
+        return modelType switch
+        {
+            "multi-v1_1" => VoicesV11,
+            "multi-v1_0" => VoicesV10,
+            "en-v0_19"   => VoicesEn,
+            _            => VoicesV10, // default to v1.0 list if no model installed
+        };
+    }
 
     // ── Constructor ────────────────────────────────────────────────────────────
 
@@ -106,7 +154,7 @@ public partial class CharacterEditWindow : Window
             Padding         = new Thickness(6, 4, 6, 4),
             ToolTip         = "Type any voice name or pick from the list",
         };
-        foreach (var v in KokoroVoices) voiceBox.Items.Add(v);
+        foreach (var v in GetKokoroVoices()) voiceBox.Items.Add(v);
 
         var weightBox = new TextBox
         {

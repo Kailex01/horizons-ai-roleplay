@@ -10,7 +10,7 @@ namespace HorizonsAI.Services;
 public sealed class KokoroService : IDisposable
 {
     private OfflineTts?   _tts;
-    private IReadOnlyDictionary<string, int> _sidMap = SidsV11;
+    private IReadOnlyDictionary<string, int> _sidMap = SidsV10;
     private readonly SemaphoreSlim _lock = new(1, 1);
 
     private const int SampleRate = 24000;
@@ -60,7 +60,12 @@ public sealed class KokoroService : IDisposable
         }
 
         _tts    = new OfflineTts(config);
-        _sidMap = isMulti ? SidsV11 : SidsV019;
+        _sidMap = modelType switch
+        {
+            "multi-v1_1" => SidsV11,
+            "multi-v1_0" => SidsV10,
+            _            => SidsV019,
+        };
     }
 
     // ── Public API ─────────────────────────────────────────────────────────────
@@ -231,31 +236,63 @@ public sealed class KokoroService : IDisposable
         return _sidMap.TryGetValue(key, out var sid) ? sid : 0;
     }
 
-    // kokoro-multi-lang-v1_1: alphabetically-ordered within each prefix group
-    private static readonly IReadOnlyDictionary<string, int> SidsV11 =
+    // kokoro-multi-lang-v1_0: 53 voices — confirmed ordering from sherpa-onnx source
+    private static readonly IReadOnlyDictionary<string, int> SidsV10 =
         new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
         {
             // American Female (0–10)
-            ["af_alloy"]     = 0,  ["af_aoede"]       = 1,  ["af_bella"]   = 2,
-            ["af_heart"]     = 3,  ["af_jessica"]     = 4,  ["af_kore"]    = 5,
-            ["af_nicole"]    = 6,  ["af_nova"]        = 7,  ["af_river"]   = 8,
-            ["af_sarah"]     = 9,  ["af_sky"]         = 10,
+            ["af_alloy"]     = 0,  ["af_aoede"]      = 1,  ["af_bella"]    = 2,
+            ["af_heart"]     = 3,  ["af_jessica"]    = 4,  ["af_kore"]     = 5,
+            ["af_nicole"]    = 6,  ["af_nova"]       = 7,  ["af_river"]    = 8,
+            ["af_sarah"]     = 9,  ["af_sky"]        = 10,
             // American Male (11–19)
-            ["am_adam"]      = 11, ["am_echo"]        = 12, ["am_eric"]    = 13,
-            ["am_fenrir"]    = 14, ["am_liam"]        = 15, ["am_michael"] = 16,
-            ["am_onyx"]      = 17, ["am_puck"]        = 18, ["am_santa"]   = 19,
+            ["am_adam"]      = 11, ["am_echo"]       = 12, ["am_eric"]     = 13,
+            ["am_fenrir"]    = 14, ["am_liam"]       = 15, ["am_michael"]  = 16,
+            ["am_onyx"]      = 17, ["am_puck"]       = 18, ["am_santa"]    = 19,
             // British Female (20–23)
-            ["bf_alice"]     = 20, ["bf_emma"]        = 21, ["bf_isabella"]= 22,
+            ["bf_alice"]     = 20, ["bf_emma"]       = 21, ["bf_isabella"] = 22,
             ["bf_lily"]      = 23,
             // British Male (24–27)
-            ["bm_daniel"]    = 24, ["bm_fable"]       = 25, ["bm_george"]  = 26,
+            ["bm_daniel"]    = 24, ["bm_fable"]      = 25, ["bm_george"]   = 26,
             ["bm_lewis"]     = 27,
+            // Spanish Female/Male (28–29)
+            ["ef_dora"]      = 28, ["em_alex"]       = 29,
+            // French Female (30)
+            ["ff_siwis"]     = 30,
+            // Hindi Female/Male (31–34)
+            ["hf_alpha"]     = 31, ["hf_beta"]       = 32,
+            ["hm_omega"]     = 33, ["hm_psi"]        = 34,
+            // Italian Female/Male (35–36)
+            ["if_sara"]      = 35, ["im_nicola"]     = 36,
             // Japanese Female (37–40)
-            ["jf_alpha"]     = 37, ["jf_gongitsune"]  = 38, ["jf_nezumi"]  = 39,
+            ["jf_alpha"]     = 37, ["jf_gongitsune"] = 38, ["jf_nezumi"]   = 39,
             ["jf_tebukuro"]  = 40,
             // Japanese Male (41)
             ["jm_kumo"]      = 41,
+            // Portuguese Female/Male (42–44)
+            ["pf_dora"]      = 42, ["pm_alex"]       = 43, ["pm_santa"]    = 44,
+            // Chinese Female (45–48)
+            ["zf_xiaobei"]   = 45, ["zf_xiaoni"]     = 46, ["zf_xiaoxiao"] = 47,
+            ["zf_xiaoyi"]    = 48,
+            // Chinese Male (49–52)
+            ["zm_yunjian"]   = 49, ["zm_yunxi"]      = 50, ["zm_yunxia"]   = 51,
+            ["zm_yunyang"]   = 52,
         };
+
+    // kokoro-multi-lang-v1_1: 103 voices — 3 EN + 55 ZH-female + 45 ZH-male
+    private static readonly IReadOnlyDictionary<string, int> SidsV11 = BuildSidsV11();
+    private static IReadOnlyDictionary<string, int> BuildSidsV11()
+    {
+        var d = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["af_maple"] = 0,
+            ["af_sol"]   = 1,
+            ["bf_vale"]  = 2,
+        };
+        for (int i = 1;  i <= 55; i++) d[$"zf_{i:000}"] = i + 2;   // zf_001=3 … zf_055=57
+        for (int i = 9;  i <= 53; i++) d[$"zm_{i:000}"] = i + 49;  // zm_009=58 … zm_053=102
+        return d;
+    }
 
     // kokoro-en-v0_19: 11 English speakers
     private static readonly IReadOnlyDictionary<string, int> SidsV019 =

@@ -9,13 +9,14 @@ namespace HorizonsAI;
 
 public partial class TtsSetupWindow : Window
 {
-    private bool _useMultilingual = false; // false = English-only (default)
+    private string _selectedModel = "multi-v1_0"; // default: best for roleplay
     private CancellationTokenSource? _cts;
 
     public bool Downloaded { get; private set; } = false;
 
     private const string EnUrl    = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-en-v0_19.tar.bz2";
-    private const string MultiUrl = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_1.tar.bz2";
+    private const string MultiV10Url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_0.tar.bz2";
+    private const string MultiV11Url = "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/kokoro-multi-lang-v1_1.tar.bz2";
 
     public TtsSetupWindow() => InitializeComponent();
 
@@ -23,18 +24,28 @@ public partial class TtsSetupWindow : Window
 
     // ── Selection ──────────────────────────────────────────────────────────────
 
-    private void SelectFull_Click(object sender, MouseButtonEventArgs e)
+    private void SelectEn_Click(object sender, MouseButtonEventArgs e)
     {
-        _useMultilingual = true;
-        SetBorderSelected(FullBorder, FullDot, true);
-        SetBorderSelected(CompactBorder, CompactDot, false);
+        _selectedModel = "en-v0_19";
+        SetBorderSelected(EnBorder,  EnDot,  true);
+        SetBorderSelected(V10Border, V10Dot, false);
+        SetBorderSelected(V11Border, V11Dot, false);
     }
 
-    private void SelectCompact_Click(object sender, MouseButtonEventArgs e)
+    private void SelectV10_Click(object sender, MouseButtonEventArgs e)
     {
-        _useMultilingual = false;
-        SetBorderSelected(CompactBorder, CompactDot, true);
-        SetBorderSelected(FullBorder, FullDot, false);
+        _selectedModel = "multi-v1_0";
+        SetBorderSelected(EnBorder,  EnDot,  false);
+        SetBorderSelected(V10Border, V10Dot, true);
+        SetBorderSelected(V11Border, V11Dot, false);
+    }
+
+    private void SelectV11_Click(object sender, MouseButtonEventArgs e)
+    {
+        _selectedModel = "multi-v1_1";
+        SetBorderSelected(EnBorder,  EnDot,  false);
+        SetBorderSelected(V10Border, V10Dot, false);
+        SetBorderSelected(V11Border, V11Dot, true);
     }
 
     private static void SetBorderSelected(System.Windows.Controls.Border border,
@@ -61,8 +72,13 @@ public partial class TtsSetupWindow : Window
         ProgressPanel.Visibility = Visibility.Visible;
 
         _cts = new CancellationTokenSource();
-        var url       = _useMultilingual ? MultiUrl : EnUrl;
-        var modelType = _useMultilingual ? "multi-v1_1" : "en-v0_19";
+        var url = _selectedModel switch
+        {
+            "multi-v1_0" => MultiV10Url,
+            "multi-v1_1" => MultiV11Url,
+            _            => EnUrl,
+        };
+        var modelType = _selectedModel;
 
         try
         {
