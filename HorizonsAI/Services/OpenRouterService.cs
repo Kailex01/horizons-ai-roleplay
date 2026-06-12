@@ -75,13 +75,13 @@ public class OpenRouterService
     public static List<(string Name, string Text)> ParsePartyResponse(string response)
     {
         var result  = new List<(string, string)>();
-        var pattern = new Regex(@"\*\*(.+?)\*\*:\s*");
+        var pattern = new Regex(@"\*\*([^*]+?):?\*\*:?\s*");
         var parts   = pattern.Split(response);
 
         // Split returns: [pre-text, name1, text1, name2, text2, ...]
         for (int i = 1; i + 1 < parts.Length; i += 2)
         {
-            var name = parts[i].Trim();
+            var name = parts[i].Trim().TrimEnd(':');
             var text = parts[i + 1].Trim();
             if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(text))
                 result.Add((name, text));
