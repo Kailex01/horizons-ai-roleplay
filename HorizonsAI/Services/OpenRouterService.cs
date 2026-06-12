@@ -146,7 +146,14 @@ public class OpenRouterService
         system += $"\n\n---\nYou are {character.Name} and you speak ONLY as {character.Name}. " +
                   "Never write dialogue or actions for any other character — not even unnamed ones. " +
                   "Do not narrate the scene or introduce plot events. " +
-                  "The Game Master controls the world; you only react to it.";
+                  "The Game Master controls the world; you only react to it.\n\n" +
+                  "GAME MECHANICS: When your character attempts a skill check or attack, embed a token in your response. " +
+                  "The engine will resolve it and replace it with the result automatically.\n" +
+                  "  [check str]  — a strength-based skill check (any stat: str/dex/con/int/wis/cha)\n" +
+                  "  [attack str]  — a weapon or tool attack (1d6 damage)\n" +
+                  "  [attack str simple]  — unarmed or improvised attack (1d4 damage)\n" +
+                  "  Add an optional modifier: [attack str +2] or [check dex -1]\n" +
+                  "Player action results already in the history appear as [success], [fail], [hit: N dmg], or [miss].";
 
         var msgs = new List<object>();
         if (!string.IsNullOrWhiteSpace(system))
@@ -159,15 +166,16 @@ public class OpenRouterService
                 msgs.Add(new { role = "system", content = $"[Scene: {msg.Text}]" });
                 continue;
             }
+            var text = msg.IsPlayer ? SimplifyTokens(msg.Text) : msg.Text;
             var content = msg.IsPlayer && !string.IsNullOrEmpty(msg.SenderName)
-                ? $"{msg.SenderName}: {msg.Text}"
-                : msg.Text;
+                ? $"{msg.SenderName}: {text}"
+                : text;
             msgs.Add(new { role = msg.IsPlayer ? "user" : "assistant", content });
         }
 
         if (!string.IsNullOrEmpty(authorsNote))
             msgs.Add(new { role = "system", content = $"[Author's note: {authorsNote}]" });
-        var current = playAs != null ? $"{playAs.Name}: {userMessage}" : userMessage;
+        var current = playAs != null ? $"{playAs.Name}: {SimplifyTokens(userMessage)}" : SimplifyTokens(userMessage);
         msgs.Add(new { role = "user", content = current });
         return msgs;
     }
@@ -210,6 +218,14 @@ public class OpenRouterService
             Each character must stay in their own role and react naturally as themselves.
             Characters must NOT narrate the scene, introduce plot events, or direct the story
             — the Game Master controls the world.
+
+            GAME MECHANICS: Any character may embed a token to trigger a dice roll:
+              [check str] — skill check (any stat: str/dex/con/int/wis/cha)
+              [attack str] — weapon/tool attack (1d6 damage)
+              [attack str simple] — unarmed/improvised attack (1d4 damage)
+              Optional modifier: [attack str +2] or [check dex -1]
+            The engine resolves the roll and replaces the token with the result.
+            Player action results in the history appear as [success], [fail], [hit: N dmg], or [miss].
             """;
 
         var msgs = new List<object> { new { role = "system", content = system } };
@@ -221,17 +237,28 @@ public class OpenRouterService
                 msgs.Add(new { role = "system", content = $"[Scene: {msg.Text}]" });
                 continue;
             }
+            var text = msg.IsPlayer ? SimplifyTokens(msg.Text) : msg.Text;
             var content = msg.IsPlayer && !string.IsNullOrEmpty(msg.SenderName)
-                ? $"{msg.SenderName}: {msg.Text}"
-                : $"**{msg.SenderName}:** {msg.Text}";
+                ? $"{msg.SenderName}: {text}"
+                : $"**{msg.SenderName}:** {text}";
             msgs.Add(new { role = msg.IsPlayer ? "user" : "assistant", content });
         }
 
         if (!string.IsNullOrEmpty(authorsNote))
             msgs.Add(new { role = "system", content = $"[Author's note: {authorsNote}]" });
-        var currentMsg = playAs != null ? $"{playAs.Name}: {userMessage}" : userMessage;
+        var currentMsg = playAs != null ? $"{playAs.Name}: {SimplifyTokens(userMessage)}" : SimplifyTokens(userMessage);
         msgs.Add(new { role = "user", content = currentMsg });
         return msgs;
+    }
+
+    // Replaces resolved game tokens with compact labels for NPC consumption
+    internal static string SimplifyTokens(string text)
+    {
+        text = Regex.Replace(text, @"\[[^\]]*?Attack[^\]]*?— HIT! 1d\d+=(\d+) dmg\]", "[hit: $1 dmg]", RegexOptions.IgnoreCase);
+        text = Regex.Replace(text, @"\[[^\]]*?Attack[^\]]*?— MISS\]",                  "[miss]",         RegexOptions.IgnoreCase);
+        text = Regex.Replace(text, @"\[[^\]]*?Check[^\]]*?— SUCCESS\]",                "[success]",      RegexOptions.IgnoreCase);
+        text = Regex.Replace(text, @"\[[^\]]*?Check[^\]]*?— FAIL\]",                   "[fail]",         RegexOptions.IgnoreCase);
+        return text;
     }
 
     private record OAIResponse(

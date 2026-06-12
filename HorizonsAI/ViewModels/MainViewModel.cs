@@ -632,6 +632,8 @@ public class MainViewModel : INotifyPropertyChanged
                 lore,
                 _authorsNote);
 
+            replies = replies.Select(r => (r.Name, ResolveNpcChecks(r.Text, key, FindNpcCharacter(r.Name, key)))).ToList();
+
             int totalAdded = 0;
             foreach (var (name, msg) in replies)
             {
@@ -705,7 +707,7 @@ public class MainViewModel : INotifyPropertyChanged
                 lore,
                 _authorsNote);
 
-            var rawText  = string.Join(" ", lines);
+            var rawText  = ResolveNpcChecks(string.Join(" ", lines), key, charItem.Character);
             var segments = KokoroService.ParseSegments(rawText).ToList();
             foreach (var (segText, isAction) in segments)
             {
@@ -789,6 +791,8 @@ public class MainViewModel : INotifyPropertyChanged
         var portraitMap = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Portrait);
         var fileMap     = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.Portrait);
         var profileMap  = partyItem.Members.ToDictionary(m => m.Character.Name, m => m.Character.VoiceProfile);
+
+        replies = replies.Select(r => (r.Name, ResolveNpcChecks(r.Text, key, FindNpcCharacter(r.Name, key)))).ToList();
 
         int totalAdded = 0;
         foreach (var (name, msg) in replies)
@@ -890,6 +894,8 @@ public class MainViewModel : INotifyPropertyChanged
                 if (charItem != null) profileMap[npc.Name] = charItem.Character.VoiceProfile;
             }
         }
+
+        replies = replies.Select(r => (r.Name, ResolveNpcChecks(r.Text, key, FindNpcCharacter(r.Name, key)))).ToList();
 
         int totalAdded = 0;
         foreach (var (name, msg) in replies)
@@ -999,6 +1005,69 @@ public class MainViewModel : INotifyPropertyChanged
             }, RegexOptions.IgnoreCase);
 
         return text;
+    }
+
+    // Resolves [check]/[attack] tokens in NPC response text using the NPC's own stats
+    private string ResolveNpcChecks(string text, string key, Character? npc)
+    {
+        text = Regex.Replace(text, @"\[Check\s+(Str|Dex|Con|Int|Wis|Cha)(?:\s+([+-]\d+))?\]",
+            m =>
+            {
+                var stat        = m.Groups[1].Value;
+                var bonus       = m.Groups[2].Success ? int.Parse(m.Groups[2].Value) : 0;
+                var dc          = _sceneDc.TryGetValue(key, out var d) ? d : 12;
+                var diff        = _sceneDifficulty.TryGetValue(key, out var df) ? df.ToLower() : "normal";
+                var effectiveDc = diff switch { "easy" => dc - 2, "hard" => dc + 2, _ => dc };
+                var mod         = (npc?.Stats.GetMod(stat) ?? 0) + bonus;
+                var roll        = _rng.Next(1, 21);
+                var total       = roll + mod;
+                var modStr      = mod >= 0 ? $"+{mod}" : $"{mod}";
+                var result      = total >= effectiveDc ? "SUCCESS" : "FAIL";
+                return $"[{stat} Check: {roll}{modStr}={total} vs DC{effectiveDc} — {result}]";
+            }, RegexOptions.IgnoreCase);
+
+        text = Regex.Replace(text, @"\[Attack\s+(Str|Dex|Con|Int|Wis|Cha)((?:\s+(?:[+-]\d+|simple))*)\]",
+            m =>
+            {
+                var stat     = m.Groups[1].Value;
+                var extras   = m.Groups[2].Value;
+                var isSimple = Regex.IsMatch(extras, @"\bsimple\b", RegexOptions.IgnoreCase);
+                var bonusM   = Regex.Match(extras, @"[+-]\d+");
+                var bonus    = bonusM.Success ? int.Parse(bonusM.Value) : 0;
+                var dieSides = isSimple ? 4 : 6;
+                var mod      = (npc?.Stats.GetMod(stat) ?? 0) + bonus;
+                var playerAc = _playAsCharacter?.Character.Stats.Ac ?? 10;
+                var target   = _playAsCharacter?.Character.Name ?? "player";
+                var roll     = _rng.Next(1, 21);
+                var total    = roll + mod;
+                var modStr   = mod >= 0 ? $"+{mod}" : $"{mod}";
+                if (total >= playerAc)
+                {
+                    var dmg = _rng.Next(1, dieSides + 1);
+                    return $"[{stat} Attack: {roll}{modStr}={total} vs AC{playerAc} ({target}) — HIT! 1d{dieSides}={dmg} dmg]";
+                }
+                return $"[{stat} Attack: {roll}{modStr}={total} vs AC{playerAc} ({target}) — MISS]";
+            }, RegexOptions.IgnoreCase);
+
+        return text;
+    }
+
+    private Character? FindNpcCharacter(string name, string key)
+    {
+        var item = _allCharactersFlat.FirstOrDefault(c =>
+            c.Character.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (item != null) return item.Character;
+
+        if (_sceneNpcs.TryGetValue(key, out var npcs))
+        {
+            var npc = npcs.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (npc?.CharacterId != null)
+            {
+                var c = _allCharactersFlat.FirstOrDefault(x => x.Character.Id == npc.CharacterId);
+                if (c != null) return c.Character;
+            }
+        }
+        return null;
     }
 
     private (int Ac, string? Name) ResolveAttackTarget(string text, int tokenIndex, string key)
