@@ -339,10 +339,39 @@
         <!-- ── Status bar ────────────────────────────────────────────────── -->
         <Border Grid.Row="1" Background="{StaticResource PanelBrush}"
                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
-            <TextBlock Text="{Binding StatusText}"
-                       Foreground="{StaticResource SubtextBrush}"
-                       VerticalAlignment="Center" Margin="10,0"
-                       FontSize="11"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Start / Pause toggle -->
+                <Button Grid.Column="0"
+                        Command="{Binding ToggleMonitoringCommand}"
+                        BorderThickness="0" Background="Transparent"
+                        Padding="10,0" Cursor="Hand" VerticalAlignment="Stretch"
+                        ToolTip="Start or pause log monitoring">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource DarkButton}">
+                            <Setter Property="Content"     Value="⏸ Pause"/>
+                            <Setter Property="Foreground"  Value="{StaticResource ActiveBrush}"/>
+                            <Setter Property="Background"  Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsWatching}" Value="False">
+                                    <Setter Property="Content"    Value="▶ Start"/>
+                                    <Setter Property="Foreground" Value="{StaticResource PendingBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <TextBlock Grid.Column="1" Text="{Binding StatusText}"
+                           Foreground="{StaticResource SubtextBrush}"
+                           VerticalAlignment="Center" Margin="4,0"
+                           FontSize="11"/>
+            </Grid>
         </Border>
     </Grid>
 </Window>

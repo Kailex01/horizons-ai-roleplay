@@ -24,6 +24,7 @@ public sealed class EqLogWatcher : IDisposable
 
     public void Start()
     {
+        Stop(); // release any existing resources before re-opening
         try
         {
             _stream = new FileStream(_path, FileMode.Open, FileAccess.Read,
@@ -38,6 +39,15 @@ public sealed class EqLogWatcher : IDisposable
         {
             Error?.Invoke(ex.Message);
         }
+    }
+
+    public void Stop()
+    {
+        _timer.Stop();
+        _reader?.Dispose();
+        _reader = null;
+        _stream?.Dispose();
+        _stream = null;
     }
 
     private void Poll()

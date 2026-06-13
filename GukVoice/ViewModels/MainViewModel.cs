@@ -34,9 +34,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     // ── Commands ───────────────────────────────────────────────────────────────
 
-    public ICommand AddSpeakerCommand    { get; }
-    public ICommand EditSpeakerCommand   { get; }
-    public ICommand RemoveSpeakerCommand { get; }
+    public ICommand AddSpeakerCommand       { get; }
+    public ICommand EditSpeakerCommand      { get; }
+    public ICommand RemoveSpeakerCommand    { get; }
+    public ICommand ToggleMonitoringCommand { get; }
 
     // ── Constructor ────────────────────────────────────────────────────────────
 
@@ -69,9 +70,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
         _processMonitor.EqClosed += OnEqClosed;
 
-        AddSpeakerCommand    = new RelayCommand(_ => OnAddSpeaker());
-        EditSpeakerCommand   = new RelayCommand(o => OnEditSpeaker(o as SpeakerItem));
-        RemoveSpeakerCommand = new RelayCommand(o => OnRemoveSpeaker(o as SpeakerItem));
+        AddSpeakerCommand       = new RelayCommand(_ => OnAddSpeaker());
+        EditSpeakerCommand      = new RelayCommand(o => OnEditSpeaker(o as SpeakerItem));
+        RemoveSpeakerCommand    = new RelayCommand(o => OnRemoveSpeaker(o as SpeakerItem));
+        ToggleMonitoringCommand = new RelayCommand(_ => ToggleMonitoring());
 
         if (KokoroService.IsModelReady(AppConfig.TtsFolder))
             _kokoro.Initialize();
@@ -153,6 +155,24 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         // Grace period in case of crash/restart
         Task.Delay(60_000).ContinueWith(_ =>
             LogArchiveService.Archive(AppConfig.Current.EqLogPath, folder));
+    }
+
+    // ── Monitoring toggle ──────────────────────────────────────────────────────
+
+    private void ToggleMonitoring()
+    {
+        if (IsWatching)
+        {
+            _watcher.Stop();
+            IsWatching = false;
+            StatusText = "Monitoring paused.";
+        }
+        else
+        {
+            _watcher.Start();
+            IsWatching = true;
+            StatusText = $"Watching: {Path.GetFileName(AppConfig.Current.EqLogPath)}";
+        }
     }
 
     // ── Speaker CRUD ───────────────────────────────────────────────────────────
