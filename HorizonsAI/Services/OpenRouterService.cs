@@ -61,10 +61,11 @@ public class OpenRouterService
         if (string.IsNullOrWhiteSpace(apiKey))
             return [("", "(No OpenRouter API key set — open Settings to add one.)")];
 
-        var memberList = members.ToList();
-        var model      = AppConfig.Current.DefaultModel;
-        var messages   = BuildPartyMessages(partyContext, memberList, history, userMessage, playAs, memory, lore, authorsNote);
-        var text       = await SendAsync(model, messages, AppConfig.Current.MaxReplyTokens);
+        var memberList  = members.ToList();
+        var model       = AppConfig.Current.DefaultModel;
+        var messages    = BuildPartyMessages(partyContext, memberList, history, userMessage, playAs, memory, lore, authorsNote);
+        var tokenBudget = AppConfig.Current.MaxReplyTokens * Math.Max(1, memberList.Count);
+        var text        = await SendAsync(model, messages, tokenBudget);
 
         if (string.IsNullOrEmpty(text)) return [("", "…")];
 
