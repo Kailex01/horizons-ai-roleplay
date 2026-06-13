@@ -8,6 +8,9 @@ public class AppSettings
     public string       AuthorsNote          { get; set; } = "";
     public VoiceProfile NarratorVoiceProfile { get; set; } = new();
 
+    // Default character prompt — prepended to every NPC/character system prompt
+    public string DefaultCharacterPrompt { get; set; } = "";
+
     // Narrator / GM
     public bool   NarratorEnabled      { get; set; } = false;
     public string NarratorModel        { get; set; } = "";

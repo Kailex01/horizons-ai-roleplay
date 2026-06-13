@@ -142,6 +142,22 @@
                     </StackPanel>
                 </Grid>
 
+                <!-- Default character prompt section -->
+                <Border Height="1" Background="#1E3A50" Margin="0,10,0,10"/>
+
+                <TextBlock Text="DEFAULT CHARACTER PROMPT" Foreground="#C8A020"
+                           FontSize="10" FontWeight="Bold" Margin="0,0,0,4"/>
+                <TextBlock TextWrapping="Wrap" Foreground="#4A6070" FontSize="10" Margin="0,0,0,8">
+                    Prepended to every character and NPC system prompt. Use this for world lore,
+                    tone, and universal roleplay rules so you don't repeat them in every character.
+                    Leave blank to disable.
+                </TextBlock>
+                <TextBox x:Name="DefaultCharacterPromptBox" Style="{StaticResource FieldBox}"
+                         AcceptsReturn="True" TextWrapping="Wrap"
+                         MinLines="5" MaxLines="10"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,14"/>
+
                 <!-- Narrator / GM section -->
                 <Border Height="1" Background="#1E3A50" Margin="0,10,0,10"/>
 

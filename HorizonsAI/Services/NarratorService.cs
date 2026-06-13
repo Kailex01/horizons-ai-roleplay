@@ -91,6 +91,11 @@ public class NarratorService
                 ? $"*{m.Text}*"
                 : string.IsNullOrEmpty(m.SenderName) ? m.Text : $"{m.SenderName}: {m.Text}"));
 
+        var defaultPrompt = AppConfig.Current.DefaultCharacterPrompt;
+        var worldContext  = string.IsNullOrWhiteSpace(defaultPrompt)
+            ? ""
+            : $"\n\nWorld context for this setting:\n{defaultPrompt}";
+
         var apiMessages = new List<object>
         {
             new { role = "system", content =
@@ -102,7 +107,8 @@ public class NarratorService
                 "Stats should reflect the character (average human=10, ability range 6-18). " +
                 "hp = max hit points (commoner ~8, guard ~11, veteran ~52). " +
                 "ac = armor class (unarmored ~10, leather ~11, chain ~14, plate ~18). " +
-                "A barkeep: CON 13, CHA 12, hp 9, ac 10. A guard: STR 13, CON 12, hp 11, ac 16. Etc." },
+                "A barkeep: CON 13, CHA 12, hp 9, ac 10. A guard: STR 13, CON 12, hp 11, ac 16. Etc." +
+                worldContext },
             new { role = "user", content =
                 $"Name: {name}\n" +
                 $"Personality sketch: {personality}\n\n" +

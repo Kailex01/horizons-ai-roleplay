@@ -23,6 +23,8 @@ public partial class SettingsWindow : Window
         NarratorPitchBox.Text  = np.PitchSemitones.ToString("F1");
         NarratorVolumeBox.Text = np.Volume.ToString("F1");
 
+        DefaultCharacterPromptBox.Text = s.DefaultCharacterPrompt;
+
         NarratorEnabledBox.IsChecked = s.NarratorEnabled;
         NarratorModelBox.Text        = s.NarratorModel;
         NarratorPromptBox.Text       = s.NarratorSystemPrompt;
@@ -49,15 +51,16 @@ public partial class SettingsWindow : Window
         var narratorPrompt = NarratorPromptBox.Text.Trim();
         AppConfig.Apply(new AppSettings
         {
-            OpenRouterApiKey     = ApiKeyBox.Text.Trim(),
-            DefaultModel         = DefaultModelBox.Text.Trim(),
-            SpeakerName          = SpeakerNameBox.Text.Trim(),
-            NarratorVoiceProfile = narratorProfile,
-            NarratorEnabled      = NarratorEnabledBox.IsChecked == true,
-            NarratorModel        = NarratorModelBox.Text.Trim(),
-            NarratorSystemPrompt = string.IsNullOrWhiteSpace(narratorPrompt)
-                                   ? AppSettings.DefaultNarratorPrompt
-                                   : narratorPrompt,
+            OpenRouterApiKey          = ApiKeyBox.Text.Trim(),
+            DefaultModel              = DefaultModelBox.Text.Trim(),
+            SpeakerName               = SpeakerNameBox.Text.Trim(),
+            NarratorVoiceProfile      = narratorProfile,
+            DefaultCharacterPrompt    = DefaultCharacterPromptBox.Text.Trim(),
+            NarratorEnabled           = NarratorEnabledBox.IsChecked == true,
+            NarratorModel             = NarratorModelBox.Text.Trim(),
+            NarratorSystemPrompt      = string.IsNullOrWhiteSpace(narratorPrompt)
+                                        ? AppSettings.DefaultNarratorPrompt
+                                        : narratorPrompt,
         });
         DialogResult = true;
         Close();

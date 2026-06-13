@@ -132,7 +132,10 @@ public class OpenRouterService
 
     private static List<object> BuildSingleMessages(Character character, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory, IReadOnlyList<LoreEntry>? lore, string? authorsNote)
     {
-        var system = character.SystemPrompt ?? "";
+        var defaultPrompt = AppConfig.Current.DefaultCharacterPrompt;
+        var system = string.IsNullOrWhiteSpace(defaultPrompt)
+            ? (character.SystemPrompt ?? "")
+            : $"{defaultPrompt}\n\n---\n{character.SystemPrompt ?? ""}";
         if (lore?.Count > 0)
             system += "\n\n---\nWorld Knowledge:\n" + string.Join("\n\n", lore.Select(e => $"**{e.Title}**\n{e.Content}"));
         if (!string.IsNullOrEmpty(memory))
@@ -182,8 +185,11 @@ public class OpenRouterService
 
     private static List<object> BuildPartyMessages(string partyContext, List<(string Name, string SystemPrompt)> members, IEnumerable<ChatMessage> history, string userMessage, Character? playAs, string? memory, IReadOnlyList<LoreEntry>? lore, string? authorsNote)
     {
+        var defaultPrompt = AppConfig.Current.DefaultCharacterPrompt;
         var profiles = string.Join("\n\n", members.Select(m =>
-            $"## {m.Name}\n{m.SystemPrompt}"));
+            string.IsNullOrWhiteSpace(defaultPrompt)
+                ? $"## {m.Name}\n{m.SystemPrompt}"
+                : $"## {m.Name}\n{defaultPrompt}\n\n---\n{m.SystemPrompt}"));
 
         var loreSec   = (lore?.Count > 0)
             ? "\n\nWorld Knowledge:\n" + string.Join("\n\n", lore.Select(e => $"**{e.Title}**\n{e.Content}"))
