@@ -10,9 +10,10 @@ public partial class SettingsWindow : Window
     {
         InitializeComponent();
         var s = AppConfig.Current;
-        ApiKeyBox.Text       = s.OpenRouterApiKey;
-        DefaultModelBox.Text = s.DefaultModel;
-        SpeakerNameBox.Text  = s.SpeakerName;
+        ApiKeyBox.Text          = s.OpenRouterApiKey;
+        DefaultModelBox.Text    = s.DefaultModel;
+        SpeakerNameBox.Text     = s.SpeakerName;
+        MaxReplyTokensBox.Text  = s.MaxReplyTokens.ToString();
 
         foreach (var v in KokoroService.GetInstalledVoiceNames())
             NarratorVoiceBox.Items.Add(v);
@@ -49,11 +50,15 @@ public partial class SettingsWindow : Window
             narratorProfile.Voices.Add(new VoiceWeight { Voice = voiceName, Weight = 1f });
 
         var narratorPrompt = NarratorPromptBox.Text.Trim();
+        int.TryParse(MaxReplyTokensBox.Text, out int maxTokens);
+        if (maxTokens <= 0) maxTokens = 60;
+
         AppConfig.Apply(new AppSettings
         {
             OpenRouterApiKey          = ApiKeyBox.Text.Trim(),
             DefaultModel              = DefaultModelBox.Text.Trim(),
             SpeakerName               = SpeakerNameBox.Text.Trim(),
+            MaxReplyTokens            = maxTokens,
             NarratorVoiceProfile      = narratorProfile,
             DefaultCharacterPrompt    = DefaultCharacterPromptBox.Text.Trim(),
             NarratorEnabled           = NarratorEnabledBox.IsChecked == true,

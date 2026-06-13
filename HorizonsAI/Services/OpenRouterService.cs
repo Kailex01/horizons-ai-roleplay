@@ -39,7 +39,7 @@ public class OpenRouterService
 
         var model    = string.IsNullOrWhiteSpace(character.Model) ? AppConfig.Current.DefaultModel : character.Model;
         var messages = BuildSingleMessages(character, history, userMessage, playAs, memory, lore, authorsNote);
-        var text     = await SendAsync(model, messages);
+        var text     = await SendAsync(model, messages, AppConfig.Current.MaxReplyTokens);
 
         if (string.IsNullOrEmpty(text)) return ["…"];
         return [text.Trim()];
@@ -64,7 +64,7 @@ public class OpenRouterService
         var memberList = members.ToList();
         var model      = AppConfig.Current.DefaultModel;
         var messages   = BuildPartyMessages(partyContext, memberList, history, userMessage, playAs, memory, lore, authorsNote);
-        var text       = await SendAsync(model, messages);
+        var text       = await SendAsync(model, messages, AppConfig.Current.MaxReplyTokens);
 
         if (string.IsNullOrEmpty(text)) return [("", "…")];
 

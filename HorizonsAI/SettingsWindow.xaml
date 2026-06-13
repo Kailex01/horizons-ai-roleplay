@@ -109,6 +109,10 @@
                 <TextBlock Text="YOUR NAME (how you appear to characters)" Style="{StaticResource FieldLabel}"/>
                 <TextBox x:Name="SpeakerNameBox" Style="{StaticResource FieldBox}" Margin="0,0,0,14"/>
 
+                <TextBlock Text="MAX REPLY TOKENS  (limits NPC/character response length — 60 = short, 150 = medium, 400 = long)"
+                           Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="MaxReplyTokensBox" Style="{StaticResource FieldBox}" Margin="0,0,0,14"/>
+
                 <TextBlock Text="NARRATOR VOICE  (used for GM narration and *action text* — leave blank to use character voice)"
                            Style="{StaticResource FieldLabel}" Margin="0,4,0,4"/>
                 <!-- Voice dropdown -->

@@ -6,6 +6,7 @@ public class AppSettings
     public string       DefaultModel         { get; set; } = "openai/gpt-4o-mini";
     public string       SpeakerName          { get; set; } = "Player";
     public string       AuthorsNote          { get; set; } = "";
+    public int          MaxReplyTokens       { get; set; } = 60;
     public VoiceProfile NarratorVoiceProfile { get; set; } = new();
 
     // Default character prompt — prepended to every NPC/character system prompt
