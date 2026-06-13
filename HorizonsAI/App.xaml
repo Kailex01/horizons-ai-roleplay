@@ -3,5 +3,77 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              StartupUri="MainWindow.xaml"
              ShutdownMode="OnMainWindowClose">
-    <Application.Resources/>
+    <Application.Resources>
+
+        <!-- Slider track button: filled = left of thumb, empty = right -->
+        <Style x:Key="SliderBtn" TargetType="RepeatButton">
+            <Setter Property="Focusable"             Value="False"/>
+            <Setter Property="IsTabStop"             Value="False"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RepeatButton">
+                        <Border Height="3" CornerRadius="1.5"
+                                Background="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Slider thumb: gold circle -->
+        <Style x:Key="SliderThumb" TargetType="Thumb">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Width"  Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Ellipse x:Name="El" Fill="#C8A020"
+                                 Width="{TemplateBinding Width}"
+                                 Height="{TemplateBinding Height}"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="El" Property="Fill" Value="#E8C040"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="El" Property="Fill" Value="#FFD700"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- DarkSlider: gold fill left, dark-blue track right, gold circle thumb -->
+        <Style x:Key="DarkSlider" TargetType="Slider">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsSnapToTickEnabled"   Value="True"/>
+            <Setter Property="Height"                Value="20"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <Border Height="20">
+                            <Track x:Name="PART_Track">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderBtn}"
+                                                  Background="#C8A020"
+                                                  Command="Slider.DecreaseLarge"/>
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Style="{StaticResource SliderBtn}"
+                                                  Background="#1E3A50"
+                                                  Command="Slider.IncreaseLarge"/>
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource SliderThumb}"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Application.Resources>
 </Application>

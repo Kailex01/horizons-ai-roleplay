@@ -19,10 +19,13 @@ public partial class SettingsWindow : Window
             NarratorVoiceBox.Items.Add(v);
 
         var np = s.NarratorVoiceProfile;
-        NarratorVoiceBox.Text  = np.Voices.FirstOrDefault()?.Voice ?? "";
-        NarratorSpeedBox.Text  = np.Speed.ToString("F1");
-        NarratorPitchBox.Text  = np.PitchSemitones.ToString("F1");
-        NarratorVolumeBox.Text = np.Volume.ToString("F1");
+        NarratorVoiceBox.Text         = np.Voices.FirstOrDefault()?.Voice ?? "";
+        NarratorSpeedSlider.Value     = Math.Clamp(np.Speed,          0.5, 2.0);
+        NarratorPitchSlider.Value     = Math.Clamp(np.PitchSemitones, -12.0, 12.0);
+        NarratorVolumeSlider.Value    = Math.Clamp(np.Volume,         0.0, 2.0);
+        NarratorSpeedLabel.Text       = np.Speed.ToString("F2");
+        NarratorPitchLabel.Text       = np.PitchSemitones.ToString("F1");
+        NarratorVolumeLabel.Text      = np.Volume.ToString("F2");
 
         DefaultCharacterPromptBox.Text = s.DefaultCharacterPrompt;
 
@@ -36,9 +39,9 @@ public partial class SettingsWindow : Window
     private void Save_Click(object sender, RoutedEventArgs e)
     {
         var voiceName = NarratorVoiceBox.Text.Trim();
-        float.TryParse(NarratorSpeedBox.Text,  out float speed);  if (speed  <= 0) speed  = 1f;
-        float.TryParse(NarratorPitchBox.Text,  out float pitch);
-        float.TryParse(NarratorVolumeBox.Text, out float volume); if (volume <= 0) volume = 1f;
+        float speed  = (float)NarratorSpeedSlider.Value;
+        float pitch  = (float)NarratorPitchSlider.Value;
+        float volume = (float)NarratorVolumeSlider.Value;
 
         var narratorProfile = new VoiceProfile
         {
@@ -69,6 +72,13 @@ public partial class SettingsWindow : Window
         });
         DialogResult = true;
         Close();
+    }
+
+    private void OnNarratorSliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (sender == NarratorSpeedSlider  && NarratorSpeedLabel  != null) NarratorSpeedLabel.Text  = e.NewValue.ToString("F2");
+        if (sender == NarratorPitchSlider  && NarratorPitchLabel  != null) NarratorPitchLabel.Text  = e.NewValue.ToString("F1");
+        if (sender == NarratorVolumeSlider && NarratorVolumeLabel != null) NarratorVolumeLabel.Text = e.NewValue.ToString("F2");
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) { DialogResult = false; Close(); }

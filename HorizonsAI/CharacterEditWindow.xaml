@@ -166,15 +166,9 @@
 
                         <!-- Column headers -->
                         <Grid Margin="0,0,0,4">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="8"/>
-                                <ColumnDefinition Width="60"/>
-                                <ColumnDefinition Width="30"/>
-                            </Grid.ColumnDefinitions>
                             <TextBlock Text="Voice" Foreground="#4A6070" FontSize="10" VerticalAlignment="Center"/>
-                            <TextBlock Grid.Column="2" Text="Weight" Foreground="#4A6070" FontSize="10"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="Weight" Foreground="#4A6070" FontSize="10"
+                                       HorizontalAlignment="Right" Margin="0,0,28,0" VerticalAlignment="Center"/>
                         </Grid>
 
                         <!-- Voice rows injected by code-behind -->
@@ -212,25 +206,47 @@
 
                         <!-- Numeric parameters -->
                         <Border BorderBrush="#1E3A50" BorderThickness="0,1,0,0" Padding="0,10,0,0">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="12"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <StackPanel>
-                                    <TextBlock Text="SPEED (0.5–2.0)" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox x:Name="SpeedBox"  Style="{StaticResource FieldBox}" Margin="0,0,0,10"/>
-                                    <TextBlock Text="PITCH SEMITONES (−12 to +12)" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox x:Name="PitchBox"  Style="{StaticResource FieldBox}"/>
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="TEMPO (0.5–2.0)" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox x:Name="TempoBox"  Style="{StaticResource FieldBox}" Margin="0,0,0,10"/>
-                                    <TextBlock Text="VOLUME (0.0–2.0)" Style="{StaticResource FieldLabel}"/>
-                                    <TextBox x:Name="VolumeBox" Style="{StaticResource FieldBox}"/>
-                                </StackPanel>
-                            </Grid>
+                            <StackPanel>
+                                <Grid Margin="0,0,0,2">
+                                    <TextBlock Text="SPEED" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="SpeedLabel" Foreground="#C8A020" FontSize="10"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Slider x:Name="SpeedSlider" Style="{StaticResource DarkSlider}"
+                                        Minimum="0.5" Maximum="2.0" Value="1.0"
+                                        SmallChange="0.05" TickFrequency="0.05"
+                                        Margin="0,0,0,10" ValueChanged="OnVoiceSliderChanged"/>
+
+                                <Grid Margin="0,0,0,2">
+                                    <TextBlock Text="PITCH  (semitones  −12 to +12)" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="PitchLabel" Foreground="#C8A020" FontSize="10"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Slider x:Name="PitchSlider" Style="{StaticResource DarkSlider}"
+                                        Minimum="-12" Maximum="12" Value="0"
+                                        SmallChange="0.5" TickFrequency="0.5"
+                                        Margin="0,0,0,10" ValueChanged="OnVoiceSliderChanged"/>
+
+                                <Grid Margin="0,0,0,2">
+                                    <TextBlock Text="TEMPO" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="TempoLabel" Foreground="#C8A020" FontSize="10"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Slider x:Name="TempoSlider" Style="{StaticResource DarkSlider}"
+                                        Minimum="0.5" Maximum="2.0" Value="1.0"
+                                        SmallChange="0.05" TickFrequency="0.05"
+                                        Margin="0,0,0,10" ValueChanged="OnVoiceSliderChanged"/>
+
+                                <Grid Margin="0,0,0,2">
+                                    <TextBlock Text="VOLUME" Style="{StaticResource FieldLabel}" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="VolumeLabel" Foreground="#C8A020" FontSize="10"
+                                               HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Slider x:Name="VolumeSlider" Style="{StaticResource DarkSlider}"
+                                        Minimum="0.0" Maximum="2.0" Value="1.0"
+                                        SmallChange="0.05" TickFrequency="0.05"
+                                        ValueChanged="OnVoiceSliderChanged"/>
+                            </StackPanel>
                         </Border>
 
                     </StackPanel>

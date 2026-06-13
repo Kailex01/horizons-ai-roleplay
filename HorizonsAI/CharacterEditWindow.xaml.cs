@@ -16,9 +16,10 @@ public partial class CharacterEditWindow : Window
 
     private class VoiceRow
     {
-        public required Grid     Container;
-        public required ComboBox VoiceBox;
-        public required TextBox  WeightBox;
+        public required Grid      Container;
+        public required ComboBox  VoiceBox;
+        public required Slider    WeightSlider;
+        public required TextBlock WeightLabel;
     }
 
     private readonly List<VoiceRow> _voiceRows = new();
@@ -70,10 +71,15 @@ public partial class CharacterEditWindow : Window
         foreach (var entry in p.Voices)
             AddVoiceRowControl(entry.Voice, entry.Weight);
 
-        SpeedBox.Text  = p.Speed.ToString("F1");
-        PitchBox.Text  = p.PitchSemitones.ToString("F1");
-        TempoBox.Text  = p.Tempo.ToString("F1");
-        VolumeBox.Text = p.Volume.ToString("F1");
+        SpeedSlider.Value  = Math.Clamp(p.Speed,          0.5, 2.0);
+        PitchSlider.Value  = Math.Clamp(p.PitchSemitones, -12.0, 12.0);
+        TempoSlider.Value  = Math.Clamp(p.Tempo,          0.5, 2.0);
+        VolumeSlider.Value = Math.Clamp(p.Volume,         0.0, 2.0);
+
+        SpeedLabel.Text  = p.Speed.ToString("F2");
+        PitchLabel.Text  = p.PitchSemitones.ToString("F1");
+        TempoLabel.Text  = p.Tempo.ToString("F2");
+        VolumeLabel.Text = p.Volume.ToString("F2");
 
         UpdateAddButtonState();
     }
@@ -83,9 +89,11 @@ public partial class CharacterEditWindow : Window
         var grid = new Grid { Margin = new Thickness(0, 0, 0, 6) };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(8) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(60) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(26) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(24) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(22) });
 
         var voiceBox = new ComboBox
         {
@@ -101,18 +109,29 @@ public partial class CharacterEditWindow : Window
         };
         foreach (var v in KokoroService.GetInstalledVoiceNames()) voiceBox.Items.Add(v);
 
-        var weightBox = new TextBox
+        var weightLabel = new TextBlock
         {
-            Text            = weight.ToString("F1"),
-            Background      = new SolidColorBrush(Color.FromRgb(0x11, 0x1E, 0x2A)),
-            Foreground      = new SolidColorBrush(Color.FromRgb(0xD4, 0xC5, 0xA0)),
-            BorderBrush     = new SolidColorBrush(Color.FromRgb(0x1E, 0x3A, 0x50)),
-            BorderThickness = new Thickness(1),
-            FontSize        = 12,
-            Padding         = new Thickness(6, 5, 6, 5),
-            TextAlignment   = TextAlignment.Center,
-            ToolTip         = "Blend weight (any positive number — auto-normalised)",
+            Text              = weight.ToString("F1"),
+            Foreground        = new SolidColorBrush(Color.FromRgb(0xC8, 0xA0, 0x20)),
+            FontSize          = 10,
+            TextAlignment     = TextAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
         };
+
+        var weightSlider = new Slider
+        {
+            Minimum             = 0.1,
+            Maximum             = 5.0,
+            Value               = Math.Clamp(weight, 0.1f, 5.0f),
+            SmallChange         = 0.1,
+            LargeChange         = 0.5,
+            TickFrequency       = 0.1,
+            IsSnapToTickEnabled = true,
+            VerticalAlignment   = VerticalAlignment.Center,
+            Style               = (Style)FindResource("DarkSlider"),
+            ToolTip             = "Blend weight — higher = picked more often",
+        };
+        weightSlider.ValueChanged += (_, e) => weightLabel.Text = e.NewValue.ToString("F1");
 
         var removeBtn = new Button
         {
@@ -125,7 +144,7 @@ public partial class CharacterEditWindow : Window
             ToolTip         = "Remove this voice",
         };
 
-        var row = new VoiceRow { Container = grid, VoiceBox = voiceBox, WeightBox = weightBox };
+        var row = new VoiceRow { Container = grid, VoiceBox = voiceBox, WeightSlider = weightSlider, WeightLabel = weightLabel };
         removeBtn.Click += (_, _) =>
         {
             _voiceRows.Remove(row);
@@ -133,11 +152,13 @@ public partial class CharacterEditWindow : Window
             UpdateAddButtonState();
         };
 
-        Grid.SetColumn(voiceBox,   0);
-        Grid.SetColumn(weightBox,  2);
-        Grid.SetColumn(removeBtn,  4);
+        Grid.SetColumn(voiceBox,     0);
+        Grid.SetColumn(weightLabel,  2);
+        Grid.SetColumn(weightSlider, 4);
+        Grid.SetColumn(removeBtn,    6);
         grid.Children.Add(voiceBox);
-        grid.Children.Add(weightBox);
+        grid.Children.Add(weightLabel);
+        grid.Children.Add(weightSlider);
         grid.Children.Add(removeBtn);
 
         VoiceEntriesPanel.Children.Add(grid);
@@ -163,17 +184,24 @@ public partial class CharacterEditWindow : Window
         {
             var name = row.VoiceBox.Text.Trim();
             if (string.IsNullOrEmpty(name)) continue;
-            if (!float.TryParse(row.WeightBox.Text, out var w)) w = 1.0f;
-            p.Voices.Add(new VoiceWeight { Voice = name, Weight = Math.Max(0.01f, w) });
+            p.Voices.Add(new VoiceWeight { Voice = name, Weight = Math.Max(0.01f, (float)row.WeightSlider.Value) });
         }
 
-        if (float.TryParse(SpeedBox.Text,  out var speed))  p.Speed          = Math.Clamp(speed,  0.5f, 2.0f);
-        if (float.TryParse(PitchBox.Text,  out var pitch))  p.PitchSemitones = Math.Clamp(pitch, -12f, 12f);
-        if (float.TryParse(TempoBox.Text,  out var tempo))  p.Tempo          = Math.Clamp(tempo,  0.5f, 2.0f);
-        if (float.TryParse(VolumeBox.Text, out var volume)) p.Volume         = Math.Clamp(volume, 0.0f, 2.0f);
+        p.Speed          = (float)Math.Clamp(SpeedSlider.Value,  0.5, 2.0);
+        p.PitchSemitones = (float)Math.Clamp(PitchSlider.Value, -12.0, 12.0);
+        p.Tempo          = (float)Math.Clamp(TempoSlider.Value,  0.5, 2.0);
+        p.Volume         = (float)Math.Clamp(VolumeSlider.Value, 0.0, 2.0);
     }
 
     // ── Title bar ──────────────────────────────────────────────────────────────
+
+    private void OnVoiceSliderChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (sender == SpeedSlider  && SpeedLabel  != null) SpeedLabel.Text  = e.NewValue.ToString("F2");
+        if (sender == PitchSlider  && PitchLabel  != null) PitchLabel.Text  = e.NewValue.ToString("F1");
+        if (sender == TempoSlider  && TempoLabel  != null) TempoLabel.Text  = e.NewValue.ToString("F2");
+        if (sender == VolumeSlider && VolumeLabel != null) VolumeLabel.Text = e.NewValue.ToString("F2");
+    }
 
     private void TitleBar_Drag(object sender, MouseButtonEventArgs e) => DragMove();
 
