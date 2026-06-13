@@ -3,6 +3,7 @@ using System.Windows.Media;
 using GukVoice.Kokoro.Models;
 using GukVoice.Kokoro.Services;
 using HorizonsAI.Models;
+using HorizonsAI.Services;
 using Microsoft.Win32;
 
 namespace HorizonsAI;

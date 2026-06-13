@@ -32,8 +32,7 @@
                 <Border Grid.Row="0" BorderBrush="{StaticResource BorderBrush}"
                         BorderThickness="0,0,0,1" Padding="10,8">
                     <TextBlock Text="SPEAKERS" FontSize="10" FontWeight="Bold"
-                               Foreground="{StaticResource SubtextBrush}"
-                               LetterSpacing="2"/>
+                               Foreground="{StaticResource SubtextBrush}"/>
                 </Border>
 
                 <!-- Speaker list -->
