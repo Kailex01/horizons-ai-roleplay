@@ -342,6 +342,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Start / Pause toggle -->
@@ -370,6 +371,21 @@
                            Foreground="{StaticResource SubtextBrush}"
                            VerticalAlignment="Center" Margin="4,0"
                            FontSize="11"/>
+
+                <!-- Settings -->
+                <Button Grid.Column="2"
+                        Command="{Binding OpenSettingsCommand}"
+                        BorderThickness="0" Background="Transparent"
+                        Padding="10,0" Cursor="Hand" VerticalAlignment="Stretch"
+                        ToolTip="Settings"
+                        Style="{StaticResource DarkButton}">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="⚙" FontSize="13"
+                                       Foreground="{StaticResource SubtextBrush}"/>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
             </Grid>
         </Border>
     </Grid>

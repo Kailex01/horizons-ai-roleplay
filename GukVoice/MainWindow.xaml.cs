@@ -43,6 +43,13 @@ public partial class MainWindow : Window
 
         menu.Items.Add(new ToolStripSeparator());
 
+        // Settings
+        var settingsItem   = new ToolStripMenuItem("⚙  Settings…");
+        settingsItem.Click += (_, _) => _vm.OpenSettingsCommand.Execute(null);
+        menu.Items.Add(settingsItem);
+
+        menu.Items.Add(new ToolStripSeparator());
+
         // Show / Hide window
         showHideItem       = new ToolStripMenuItem();
         showHideItem.Click += (_, _) => ToggleVisibility();

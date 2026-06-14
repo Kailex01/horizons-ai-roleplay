@@ -42,7 +42,8 @@ public sealed class TtsQueueService : IDisposable
             SpeakingChanged?.Invoke(speaker.Name);
             try
             {
-                await _kokoro.SpeakAsync(text, speaker.VoiceProfile, ct: ct).ConfigureAwait(false);
+                await _kokoro.SpeakAsync(text, speaker.VoiceProfile,
+                    AppConfig.Current.NarratorVoice, ct: ct).ConfigureAwait(false);
             }
             catch (OperationCanceledException) { break; }
             catch { }

@@ -38,6 +38,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ICommand EditSpeakerCommand      { get; }
     public ICommand RemoveSpeakerCommand    { get; }
     public ICommand ToggleMonitoringCommand { get; }
+    public ICommand OpenSettingsCommand     { get; }
 
     // ── Constructor ────────────────────────────────────────────────────────────
 
@@ -74,6 +75,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         EditSpeakerCommand      = new RelayCommand(o => OnEditSpeaker(o as SpeakerItem));
         RemoveSpeakerCommand    = new RelayCommand(o => OnRemoveSpeaker(o as SpeakerItem));
         ToggleMonitoringCommand = new RelayCommand(_ => ToggleMonitoring());
+        OpenSettingsCommand     = new RelayCommand(_ => new SettingsWindow().ShowDialog());
 
         if (KokoroService.IsModelReady(AppConfig.TtsFolder))
         {

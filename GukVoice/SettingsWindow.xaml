@@ -1,0 +1,144 @@
+<Window x:Class="GukVoice.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GukVoice Settings" Height="680" Width="560"
+        MinHeight="500" MinWidth="480"
+        WindowStartupLocation="CenterOwner" ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource BgBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="24,24,24,12">
+
+                <!-- ── EQ Log section ────────────────────────────────────────── -->
+                <TextBlock Text="EQ LOG" FontSize="10" FontWeight="Bold"
+                           Foreground="{StaticResource SubtextBrush}" Margin="0,0,0,12"/>
+
+                <TextBlock Text="EQ Log File" Style="{StaticResource FieldLabel}"/>
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="LogPathBox" Grid.Column="0"
+                             Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Arrow"/>
+                    <Button Grid.Column="2" Content="Browse…" Style="{StaticResource DarkButton}"
+                            Click="BrowseLog_Click"/>
+                </Grid>
+
+                <TextBlock Text="Your Character Name" Style="{StaticResource FieldLabel}"/>
+                <TextBox x:Name="PlayerNameBox" Style="{StaticResource DarkTextBox}" Margin="0,0,0,12"/>
+
+                <TextBlock Text="Archive Folder (optional)" Style="{StaticResource FieldLabel}"/>
+                <Grid Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="8"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="ArchiveFolderBox" Grid.Column="0"
+                             Style="{StaticResource DarkTextBox}" IsReadOnly="True" Cursor="Arrow"/>
+                    <Button Grid.Column="2" Content="Browse…" Style="{StaticResource DarkButton}"
+                            Click="BrowseArchive_Click"/>
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,24">
+                    <CheckBox x:Name="ArchiveOnExitBox" VerticalAlignment="Center"
+                              Foreground="{StaticResource TextBrush}"/>
+                    <TextBlock Text="  Archive log when EverQuest closes"
+                               Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- ── Divider ───────────────────────────────────────────────── -->
+                <Border Height="1" Background="{StaticResource BorderBrush}" Margin="0,0,0,20"/>
+
+                <!-- ── Narrator Voice section ────────────────────────────────── -->
+                <TextBlock Text="NARRATOR VOICE" FontSize="10" FontWeight="Bold"
+                           Foreground="{StaticResource SubtextBrush}" Margin="0,0,0,4"/>
+                <TextBlock Foreground="{StaticResource SubtextBrush}" FontSize="10" Margin="0,0,0,14"
+                           Text="Speaks *emote* actions embedded in NPC dialog — e.g.  *growls* Come no further!"/>
+
+                <!-- Voice rows populated in code-behind -->
+                <StackPanel x:Name="VoiceRowsPanel"/>
+
+                <Button x:Name="AddVoiceButton" Content="+ Add Voice"
+                        Style="{StaticResource DarkButton}"
+                        HorizontalAlignment="Left" Margin="0,8,0,16"
+                        Click="AddVoice_Click"/>
+
+                <!-- Sliders -->
+                <Grid Margin="0,0,0,8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="36"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Speed" Foreground="{StaticResource SubtextBrush}" VerticalAlignment="Center"/>
+                        <Slider x:Name="SpeedSlider" Grid.Column="1" Minimum="0.5" Maximum="2.0"
+                                Value="1.0" TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                ValueChanged="SpeedSlider_ValueChanged"/>
+                        <TextBlock x:Name="SpeedLabel" Grid.Column="2" Text="1.00"
+                                   Foreground="{StaticResource TextBrush}"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    </Grid>
+
+                    <Grid Grid.Row="2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="36"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Pitch (st)" Foreground="{StaticResource SubtextBrush}" VerticalAlignment="Center"/>
+                        <Slider x:Name="PitchSlider" Grid.Column="1" Minimum="-12" Maximum="12"
+                                Value="0" TickFrequency="1" IsSnapToTickEnabled="True"
+                                ValueChanged="PitchSlider_ValueChanged"/>
+                        <TextBlock x:Name="PitchLabel" Grid.Column="2" Text="0.0"
+                                   Foreground="{StaticResource TextBrush}"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    </Grid>
+
+                    <Grid Grid.Row="4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="90"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="36"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Volume" Foreground="{StaticResource SubtextBrush}" VerticalAlignment="Center"/>
+                        <Slider x:Name="VolumeSlider" Grid.Column="1" Minimum="0.1" Maximum="2.0"
+                                Value="1.0" TickFrequency="0.1" IsSnapToTickEnabled="True"
+                                ValueChanged="VolumeSlider_ValueChanged"/>
+                        <TextBlock x:Name="VolumeLabel" Grid.Column="2" Text="1.00"
+                                   Foreground="{StaticResource TextBrush}"
+                                   VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                    </Grid>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- ── Buttons (pinned to bottom) ───────────────────────────────────── -->
+        <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                Padding="24,12" Background="{StaticResource PanelBrush}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel" Style="{StaticResource DarkButton}"
+                        IsCancel="True" Margin="0,0,8,0"/>
+                <Button Content="Save" Style="{StaticResource DarkButton}"
+                        IsDefault="True" Click="Save_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

@@ -10,4 +10,5 @@ public class GukVoiceSettings
     [JsonPropertyName("zone_voice")]         public VoiceProfile?       ZoneVoice        { get; set; }
     [JsonPropertyName("exp_voice")]          public VoiceProfile?       ExpVoice         { get; set; }
     [JsonPropertyName("loot_voice")]         public VoiceProfile?       LootVoice        { get; set; }
+    [JsonPropertyName("narrator_voice")]     public VoiceProfile?       NarratorVoice    { get; set; }
 }
