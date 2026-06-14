@@ -47,11 +47,27 @@ public class CombatViewModel : INotifyPropertyChanged
 
     // ── Constructor ────────────────────────────────────────────────────────────
 
+    public ICommand ClearCommand { get; }
+
     public CombatViewModel()
     {
-        _tickTimer = new System.Timers.Timer(500) { AutoReset = true };
+        ClearCommand = new RelayCommand(_ => Clear());
+        _tickTimer   = new System.Timers.Timer(500) { AutoReset = true };
         _tickTimer.Elapsed += (_, _) => OnTick();
         _tickTimer.Start();
+    }
+
+    public void Clear()
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            _inCombat  = false;
+            InCombat   = false;
+            StatusText = "No active fight";
+            TargetText = "—";
+            ClearLiveStats();
+            FightHistory.Clear();
+        });
     }
 
     // ── Public input ───────────────────────────────────────────────────────────

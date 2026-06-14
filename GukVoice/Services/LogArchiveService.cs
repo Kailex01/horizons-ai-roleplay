@@ -14,13 +14,13 @@ public static class LogArchiveService
 
         try
         {
-            using var input  = File.OpenRead(logPath);
-            using var output = File.Create(archivePath);
-            using var gzip   = new GZipStream(output, CompressionLevel.Optimal);
-            input.CopyTo(gzip);
+            using (var input  = File.OpenRead(logPath))
+            using (var output = File.Create(archivePath))
+            using (var gzip   = new GZipStream(output, CompressionLevel.Optimal))
+                input.CopyTo(gzip);
 
-            // Truncate the original — EQ may still be open, so don't delete it
-            File.WriteAllText(logPath, "");
+            // Streams are closed — safe to delete the original
+            File.Delete(logPath);
         }
         catch { }
     }

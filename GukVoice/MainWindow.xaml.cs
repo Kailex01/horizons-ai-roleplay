@@ -43,6 +43,13 @@ public partial class MainWindow : Window
 
         menu.Items.Add(new ToolStripSeparator());
 
+        // Archive log
+        var archiveItem   = new ToolStripMenuItem("🗄  Archive & Clear Log");
+        archiveItem.Click += (_, _) => _vm.ArchiveLogCommand.Execute(null);
+        menu.Items.Add(archiveItem);
+
+        menu.Items.Add(new ToolStripSeparator());
+
         // Settings
         var settingsItem   = new ToolStripMenuItem("⚙  Settings…");
         settingsItem.Click += (_, _) => _vm.OpenSettingsCommand.Execute(null);

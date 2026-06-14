@@ -279,9 +279,16 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="FIGHT HISTORY"
-                                       Style="{StaticResource FieldLabel}"
-                                       Margin="16,8,0,4"/>
+                            <Grid Grid.Row="0" Margin="16,8,16,4">
+                                <TextBlock Text="FIGHT HISTORY"
+                                           Style="{StaticResource FieldLabel}"
+                                           VerticalAlignment="Center"/>
+                                <Button HorizontalAlignment="Right"
+                                        Command="{Binding Combat.ClearCommand}"
+                                        Style="{StaticResource DarkButton}"
+                                        Padding="8,2" FontSize="11"
+                                        Content="Clear"/>
+                            </Grid>
                             <ListBox Grid.Row="1"
                                      ItemsSource="{Binding Combat.FightHistory}"
                                      Background="Transparent" BorderThickness="0"
@@ -344,6 +351,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Start / Pause toggle -->
@@ -373,8 +381,23 @@
                            VerticalAlignment="Center" Margin="4,0"
                            FontSize="11"/>
 
-                <!-- Reload TTS -->
+                <!-- Archive Log -->
                 <Button Grid.Column="2"
+                        Command="{Binding ArchiveLogCommand}"
+                        BorderThickness="0" Background="Transparent"
+                        Padding="10,0" Cursor="Hand" VerticalAlignment="Stretch"
+                        ToolTip="Archive log and wait for EQ to create a new one"
+                        Style="{StaticResource DarkButton}">
+                    <Button.ContentTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="🗄" FontSize="13"
+                                       Foreground="{StaticResource SubtextBrush}"/>
+                        </DataTemplate>
+                    </Button.ContentTemplate>
+                </Button>
+
+                <!-- Reload TTS -->
+                <Button Grid.Column="3"
                         Command="{Binding ReloadTtsCommand}"
                         BorderThickness="0" Background="Transparent"
                         Padding="10,0" Cursor="Hand" VerticalAlignment="Stretch"
@@ -389,7 +412,7 @@
                 </Button>
 
                 <!-- Settings -->
-                <Button Grid.Column="3"
+                <Button Grid.Column="4"
                         Command="{Binding OpenSettingsCommand}"
                         BorderThickness="0" Background="Transparent"
                         Padding="10,0" Cursor="Hand" VerticalAlignment="Stretch"

@@ -40,6 +40,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public ICommand ToggleMonitoringCommand { get; }
     public ICommand OpenSettingsCommand     { get; }
     public ICommand ReloadTtsCommand        { get; }
+    public ICommand ArchiveLogCommand       { get; }
 
     // ── Constructor ────────────────────────────────────────────────────────────
 
@@ -69,6 +70,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
         _watcher.LineReceived += OnLineReceived;
         _watcher.Error        += msg => StatusText = $"Log error: {msg}";
+        _watcher.FileFound    += () => Application.Current.Dispatcher.Invoke(() =>
+        {
+            IsWatching = true;
+            StatusText = $"Watching: {Path.GetFileName(AppConfig.Current.EqLogPath)}";
+        });
 
         _processMonitor.EqClosed += OnEqClosed;
 
@@ -78,6 +84,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         ToggleMonitoringCommand = new RelayCommand(_ => ToggleMonitoring());
         OpenSettingsCommand     = new RelayCommand(_ => new SettingsWindow().ShowDialog());
         ReloadTtsCommand        = new RelayCommand(_ => OnReloadTts());
+        ArchiveLogCommand       = new RelayCommand(_ => OnArchiveLog());
 
         if (KokoroService.IsModelReady(AppConfig.TtsFolder))
         {
@@ -180,6 +187,40 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         // Grace period in case of crash/restart
         Task.Delay(60_000).ContinueWith(_ =>
             LogArchiveService.Archive(AppConfig.Current.EqLogPath, folder));
+    }
+
+    // ── Log archive ───────────────────────────────────────────────────────────
+
+    private void OnArchiveLog()
+    {
+        var settings = AppConfig.Current;
+        var folder   = string.IsNullOrWhiteSpace(settings.ArchiveFolder)
+            ? AppConfig.ArchiveFolder
+            : settings.ArchiveFolder;
+
+        StatusText = "Archiving log…";
+        _watcher.Stop();
+        IsWatching = false;
+
+        try
+        {
+            LogArchiveService.Archive(settings.EqLogPath, folder);
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Archive failed: {ex.Message}";
+            return;
+        }
+
+        if (_processMonitor.IsRunning)
+        {
+            StatusText = "Log archived — waiting for EQ to create new log…";
+            _watcher.WaitForNewFile(() => _processMonitor.IsRunning);
+        }
+        else
+        {
+            StatusText = "Log archived — launch EQ to start a new log";
+        }
     }
 
     // ── TTS reload ────────────────────────────────────────────────────────────
