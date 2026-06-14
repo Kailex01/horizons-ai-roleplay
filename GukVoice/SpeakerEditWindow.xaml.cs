@@ -162,13 +162,13 @@ public partial class SpeakerEditWindow : Window
         AddVoiceRow("", 100f / (_rows.Count + 1));
 
     private void SpeedSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
-        => SpeedLabel.Text = $"{e.NewValue:F2}";
+    { if (SpeedLabel  != null) SpeedLabel.Text  = $"{e.NewValue:F2}"; }
 
     private void PitchSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
-        => PitchLabel.Text = $"{e.NewValue:F1}";
+    { if (PitchLabel  != null) PitchLabel.Text  = $"{e.NewValue:F1}"; }
 
     private void VolumeSlider_ValueChanged(object sender, System.Windows.RoutedPropertyChangedEventArgs<double> e)
-        => VolumeLabel.Text = $"{e.NewValue:F2}";
+    { if (VolumeLabel != null) VolumeLabel.Text = $"{e.NewValue:F2}"; }
 
     private void Save_Click(object sender, RoutedEventArgs e)
     {
