@@ -491,7 +491,13 @@ public class MainViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(AuthorsNote));
     }
 
-    public void InitializeTts() => _kokoro.Initialize();
+    public void InitializeTts()
+    {
+        var allProfiles = _allCharactersFlat
+            .Select(c => c.Character.VoiceProfile)
+            .Append(AppConfig.Current.NarratorVoiceProfile);
+        _kokoro.Initialize(allProfiles);
+    }
 
     // ── Conversation management ────────────────────────────────────────────────
 
