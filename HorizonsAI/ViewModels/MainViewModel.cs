@@ -282,6 +282,7 @@ public class MainViewModel : INotifyPropertyChanged
     public ICommand EditBeginCommand  { get; }
     public ICommand EditCommitCommand { get; }
     public ICommand EditCancelCommand { get; }
+    public ICommand ReloadTtsCommand  { get; }
 
     // ── Events ─────────────────────────────────────────────────────────────────
 
@@ -336,6 +337,22 @@ public class MainViewModel : INotifyPropertyChanged
 
         SelectSceneCommand = new RelayCommand(
             p => { if (p is SceneItem item) SelectedScene = item; return Task.CompletedTask; });
+
+        ReloadTtsCommand = new RelayCommand(_ => OnReloadTts());
+    }
+
+    private void OnReloadTts()
+    {
+        StatusText = "Reloading TTS…";
+        try
+        {
+            var allProfiles = _allCharactersFlat
+                .Select(c => c.Character.VoiceProfile)
+                .Append(AppConfig.Current.NarratorVoiceProfile);
+            _kokoro.Reinitialize(allProfiles);
+            StatusText = _kokoro.BlendDiagnostic;
+        }
+        catch (Exception ex) { StatusText = $"TTS reload failed: {ex.Message}"; }
     }
 
     // ── Character management ───────────────────────────────────────────────────

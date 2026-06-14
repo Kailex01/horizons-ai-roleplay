@@ -356,6 +356,8 @@
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="📖" Style="{StaticResource TitleBtn}" Click="Lorebook_Click"   ToolTip="Lorebook"/>
                 <Button Content="⚙"  Style="{StaticResource TitleBtn}" Click="Settings_Click"  ToolTip="Settings"/>
+                <Button Content="↺"  Style="{StaticResource TitleBtn}"
+                        Command="{Binding ReloadTtsCommand}" ToolTip="Reload TTS voices"/>
                 <Button Content="─"  Style="{StaticResource TitleBtn}" Click="Minimize_Click"  ToolTip="Minimize"/>
                 <Button Content="⬜" Style="{StaticResource TitleBtn}" Click="MaxRestore_Click" ToolTip="Maximize"/>
                 <Button Content="✕"  Style="{StaticResource CloseTitleBtn}" Click="Close_Click" ToolTip="Close"/>
