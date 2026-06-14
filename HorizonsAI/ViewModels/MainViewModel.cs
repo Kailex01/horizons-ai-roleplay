@@ -338,7 +338,7 @@ public class MainViewModel : INotifyPropertyChanged
         SelectSceneCommand = new RelayCommand(
             p => { if (p is SceneItem item) SelectedScene = item; return Task.CompletedTask; });
 
-        ReloadTtsCommand = new RelayCommand(_ => OnReloadTts());
+        ReloadTtsCommand = new RelayCommand(_ => { OnReloadTts(); return Task.CompletedTask; });
     }
 
     private void OnReloadTts()
