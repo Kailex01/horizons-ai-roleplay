@@ -34,8 +34,10 @@ public partial class MainWindow : Window
         _overlay = new FloatingCombatOverlay();
         _overlay.Show();
 
-        _vm.EqWindowMoved   += rect => Dispatcher.Invoke(() => _overlay.UpdatePosition(rect));
+        _vm.EqWindowMoved      += rect => Dispatcher.Invoke(() => _overlay.UpdatePosition(rect));
         _vm.Fct.SpawnRequested += args => _overlay.Spawn(args);
+        _vm.EqClosed           += () => Dispatcher.Invoke(() => _overlay.Hide());
+        _vm.EqStarted          += () => Dispatcher.Invoke(() => _overlay.Show());
     }
 
     // ── Tray icon setup ────────────────────────────────────────────────────────

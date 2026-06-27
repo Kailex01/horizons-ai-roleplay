@@ -17,6 +17,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public FctViewModel                       Fct          { get; } = new();
 
     public event Action<Rect>? EqWindowMoved;
+    public event Action?       EqStarted;
+    public event Action?       EqClosed;
 
     private const int MaxFeedItems = 300;
 
@@ -56,6 +58,9 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _processMonitor = new EqProcessMonitor();
         _windowTracker  = new EqWindowTracker();
         _windowTracker.RectChanged += rect => EqWindowMoved?.Invoke(rect);
+
+        _processMonitor.EqStarted += () => EqStarted?.Invoke();
+        _processMonitor.EqClosed  += () => EqClosed?.Invoke();
 
         foreach (var sp in AppConfig.Current.Speakers)
             Speakers.Add(new SpeakerItem(sp));
