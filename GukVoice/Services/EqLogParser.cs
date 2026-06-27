@@ -7,18 +7,15 @@ namespace GukVoice.Services;
 public static class EqLogParser
 {
     // ── Line wrapper ───────────────────────────────────────────────────────────
-    // EQ format: [Mon Jan  1 00:00:00 2026] message body
     private static readonly Regex RxLine = new(
         @"^\[(\w{3} \w{3} [ \d]\d \d{2}:\d{2}:\d{2} \d{4})\] (.+)$",
         RegexOptions.Compiled);
 
     // ── Chat patterns ──────────────────────────────────────────────────────────
-    // Others: "Name says, 'text'" / "Name shouts, 'text'" / "Name tells you, 'text'" etc.
     private static readonly Regex RxChatOther = new(
         @"^(.+?) (?:says?|shouts?|tells? you|tells? the group|says? out of character),? '(.+)'$",
         RegexOptions.Compiled);
 
-    // Player "You say, 'text'" forms — speaker will be substituted with PlayerName
     private static readonly Regex RxChatYou = new(
         @"^You (?:say|shout|tell|say out of character|tell the group),? '(.+)'$",
         RegexOptions.Compiled);
@@ -36,27 +33,65 @@ public static class EqLogParser
     private static readonly Regex RxLootYou = new(
         @"^You receive .+? from", RegexOptions.Compiled);
 
-    // ── Combat — damage dealt (melee verbs) ────────────────────────────────────
+    // ── Combat — melee damage dealt ────────────────────────────────────────────
     private static readonly Regex RxDmgDealtMelee = new(
         @"^You (?:slash|pierce|crush|kick|punch|bite|bash|backstab|strike|claw|maul|gore|rend|frenzy on) (.+?) for (\d+) points? of damage\.$",
         RegexOptions.Compiled);
 
-    // Combat — damage dealt (spell/non-melee)
+    // Combat — spell / non-melee damage dealt
     private static readonly Regex RxDmgDealtSpell = new(
         @"^You hit (.+?) for (\d+) points? of non-melee damage\.$",
         RegexOptions.Compiled);
 
-    // Combat — damage taken (melee) — "YOU" is uppercase in EQ logs
+    // Combat — melee damage taken ("YOU" is uppercase in EQ logs)
     private static readonly Regex RxDmgTakenMelee = new(
         @"^(.+?) (?:slash|pierce|crush|kick|punch|bite|bash|backstab|hit|strike|claw|maul|gore|rend)s? YOU for (\d+) points? of damage\.$",
         RegexOptions.Compiled);
 
-    // Combat — damage taken (spell)
+    // Combat — spell damage taken
     private static readonly Regex RxDmgTakenSpell = new(
         @"^(.+?) hit you for (\d+) points? of non-melee damage\.$",
         RegexOptions.Compiled);
 
-    // Combat — kills
+    // ── Combat — crits (separate log lines that follow the hit) ───────────────
+    // Melee / archery / throwing crits dealt
+    private static readonly Regex RxCritDealt = new(
+        @"^You (?:score a critical hit|land a Crippling Blow|perform a Deadly Strike|scored a Finishing Blow upon|fire an arrow with tremendous force)[!.]?\((\d+)\)$",
+        RegexOptions.Compiled);
+
+    // Spell crits dealt
+    private static readonly Regex RxCritDealtSpell = new(
+        @"^You deliver a critical blast[!.]?\s*\((\d+)\)$",
+        RegexOptions.Compiled);
+
+    // Crits taken from NPCs — "NPC scores a critical hit! (1234)"
+    private static readonly Regex RxCritTaken = new(
+        @"^(.+?) (?:scores? a critical hit|lands? a Crippling Blow|performs? a Deadly Strike)[!.]?\((\d+)\)$",
+        RegexOptions.Compiled);
+
+    // ── Combat — heals ────────────────────────────────────────────────────────
+    // You healed a friendly target: "You healed Soandso for 500 hit points."
+    //   or with overheal: "You healed Soandso for 500 (750) hit points by Complete Heal."
+    private static readonly Regex RxHealDealt = new(
+        @"^You healed (.+?) for (\d+)",
+        RegexOptions.Compiled);
+
+    // You were healed: "You have been healed for 500 hit points."
+    private static readonly Regex RxHealTakenPassive = new(
+        @"^You have been healed for (\d+)",
+        RegexOptions.Compiled);
+
+    // Someone healed you: "Cleric healed you for 500 (750) hit points by Complete Heal."
+    private static readonly Regex RxHealTakenActive = new(
+        @"^(.+?) healed you for (\d+)",
+        RegexOptions.Compiled);
+
+    // Enemy healed: "Goblin has been healed for 500 hit points." (passive, non-you subject)
+    private static readonly Regex RxHealEnemy = new(
+        @"^(.+?) has been healed for (\d+)",
+        RegexOptions.Compiled);
+
+    // ── Combat — kills ────────────────────────────────────────────────────────
     private static readonly Regex RxYouSlew = new(
         @"^You have slain (.+)!$", RegexOptions.Compiled);
 
@@ -65,6 +100,13 @@ public static class EqLogParser
 
     private static readonly Regex RxPlayerDied = new(
         @"^You have been slain by (.+?)!$", RegexOptions.Compiled);
+
+    // ── Level up ──────────────────────────────────────────────────────────────
+    // "You have gained a level! Welcome to level 55!"
+    // "Congratulations! You have reached level 55!"
+    private static readonly Regex RxLevelUp = new(
+        @"(?:gained a level|reached level)\D*(\d+)",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     // ── Public entry point ─────────────────────────────────────────────────────
 
@@ -78,12 +120,11 @@ public static class EqLogParser
         var time = ParseTimestamp(m.Groups[1].Value);
         var body = m.Groups[2].Value;
 
-        // Combat is checked first — those lines would also partially match chat
-        var combat = TryCombat(body, time);
-        if (combat != null) return new(null, combat);
-
+        // Run both parsers — some lines (exp, level-up) may return both so the
+        // activity feed and FCT overlay both get notified.
+        var combat   = TryCombat(body, time);
         var logEvent = TryLogEvent(body, time, playerName);
-        return new(logEvent, null);
+        return new(logEvent, combat);
     }
 
     // ── Log event parsing ──────────────────────────────────────────────────────
@@ -119,53 +160,100 @@ public static class EqLogParser
         return null;
     }
 
-    // ── Combat parsing ─────────────────────────���───────────────────────────────
+    // ── Combat parsing ─────────────────────────────────────────────────────────
 
     private static CombatEvent? TryCombat(string body, DateTime time)
     {
         Match m;
 
-        // Player death (check before RxSlainBy to avoid false match on "You")
+        // ── Level up ───────────────────────────────────────────────────────────
+        m = RxLevelUp.Match(body);
+        if (m.Success)
+        {
+            var label = m.Groups[1].Success ? $"Level {m.Groups[1].Value}!" : "";
+            return new CombatEvent { Type = CombatEventType.LevelUp, Time = time, Label = label };
+        }
+
+        // ── Experience gain ────────────────────────────────────────────────────
+        if (RxExp.IsMatch(body))
+            return new CombatEvent { Type = CombatEventType.ExperienceGain, Time = time };
+
+        // ── Player death (check before RxSlainBy to avoid "You" false match) ──
         m = RxPlayerDied.Match(body);
         if (m.Success)
             return new CombatEvent { Type = CombatEventType.PlayerDeath, Time = time,
                                      Actor = m.Groups[1].Value };
 
-        // You slew mob
+        // ── Mob death ─────────────────────────────────────────────────────────
         m = RxYouSlew.Match(body);
         if (m.Success)
             return new CombatEvent { Type = CombatEventType.MobDeath, Time = time,
                                      Target = m.Groups[1].Value };
 
-        // X has been slain by Y
         m = RxSlainBy.Match(body);
         if (m.Success)
             return new CombatEvent { Type = CombatEventType.MobDeath, Time = time,
                                      Target = m.Groups[1].Value, Actor = m.Groups[2].Value };
 
-        // Damage dealt — melee
+        // ── Crits (check before regular hits — crits are separate log lines) ──
+        m = RxCritDealt.Match(body);
+        if (m.Success && int.TryParse(m.Groups[1].Value, out int cd))
+            return new CombatEvent { Type = CombatEventType.CritDealt, Time = time,
+                                     Damage = cd, Source = DamageSource.Melee };
+
+        m = RxCritDealtSpell.Match(body);
+        if (m.Success && int.TryParse(m.Groups[1].Value, out cd))
+            return new CombatEvent { Type = CombatEventType.CritDealt, Time = time,
+                                     Damage = cd, Source = DamageSource.Spell };
+
+        m = RxCritTaken.Match(body);
+        if (m.Success && int.TryParse(m.Groups[2].Value, out int ct))
+            return new CombatEvent { Type = CombatEventType.CritTaken, Time = time,
+                                     Actor = m.Groups[1].Value, Damage = ct };
+
+        // ── Regular damage dealt ───────────────────────────────────────────────
         m = RxDmgDealtMelee.Match(body);
         if (m.Success && int.TryParse(m.Groups[2].Value, out int dmg))
             return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
                                      Target = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Melee };
 
-        // Damage dealt — spell
         m = RxDmgDealtSpell.Match(body);
         if (m.Success && int.TryParse(m.Groups[2].Value, out dmg))
             return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
                                      Target = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Spell };
 
-        // Damage taken — melee (YOU uppercase)
+        // ── Regular damage taken ───────────────────────────────────────────────
         m = RxDmgTakenMelee.Match(body);
         if (m.Success && int.TryParse(m.Groups[2].Value, out dmg))
             return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
                                      Actor = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Melee };
 
-        // Damage taken — spell
         m = RxDmgTakenSpell.Match(body);
         if (m.Success && int.TryParse(m.Groups[2].Value, out dmg))
             return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
                                      Actor = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Spell };
+
+        // ── Heals ─────────────────────────────────────────────────────────────
+        m = RxHealDealt.Match(body);
+        if (m.Success && int.TryParse(m.Groups[2].Value, out int heal))
+            return new CombatEvent { Type = CombatEventType.HealDealt, Time = time,
+                                     Target = m.Groups[1].Value, Damage = heal };
+
+        m = RxHealTakenPassive.Match(body);
+        if (m.Success && int.TryParse(m.Groups[1].Value, out heal))
+            return new CombatEvent { Type = CombatEventType.HealTaken, Time = time, Damage = heal };
+
+        m = RxHealTakenActive.Match(body);
+        if (m.Success && int.TryParse(m.Groups[2].Value, out heal))
+            return new CombatEvent { Type = CombatEventType.HealTaken, Time = time,
+                                     Actor = m.Groups[1].Value, Damage = heal };
+
+        // "X has been healed" — enemy heal (only reaches here because "You have been healed"
+        // matched RxHealTakenPassive above)
+        m = RxHealEnemy.Match(body);
+        if (m.Success && int.TryParse(m.Groups[2].Value, out heal))
+            return new CombatEvent { Type = CombatEventType.HealEnemy, Time = time,
+                                     Target = m.Groups[1].Value, Damage = heal };
 
         return null;
     }
@@ -174,7 +262,6 @@ public static class EqLogParser
 
     private static DateTime ParseTimestamp(string ts)
     {
-        // EQ pads single-digit days with a space: "Mon Jan  1 ..."
         var s = Regex.Replace(ts, @"\s+", " ").Trim();
         if (DateTime.TryParseExact(s, "ddd MMM d HH:mm:ss yyyy",
             CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))

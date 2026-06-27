@@ -194,6 +194,174 @@
                     </ListBox>
                 </TabItem>
 
+                <!-- ── Overlay (FCT) tab ────────────────────────────────── -->
+                <TabItem Header="Overlay">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="20,16">
+
+                            <!-- Master enable -->
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Padding="14,10" Margin="0,0,0,16">
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding Fct.Enabled}"
+                                              VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <StackPanel>
+                                        <TextBlock Text="Enable Floating Combat Text"
+                                                   Foreground="{StaticResource TextBrush}"
+                                                   FontWeight="SemiBold" FontSize="14"/>
+                                        <TextBlock Text="Overlay numbers animate above the EQ window center"
+                                                   Foreground="{StaticResource SubtextBrush}"
+                                                   FontSize="11"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- DAMAGE section -->
+                            <TextBlock Text="DAMAGE" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Padding="14,8" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowDamageOut}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Damage Out  (melee)"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="White — hits you deal with melee attacks"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowDamageIn}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Damage In  (melee)"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Orange — melee hits you take"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowCritOut}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Crit Out"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Gold / large — critical hits and crippling blows you land"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowCritIn}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Crit In"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Bright red / large — critical hits you take"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- SPELLS section -->
+                            <TextBlock Text="SPELLS" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Padding="14,8" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowSpellOut}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Spell Damage Out"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Blue — non-melee damage you deal"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowSpellIn}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Spell Damage In"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Purple — non-melee damage you take"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- HEALING section -->
+                            <TextBlock Text="HEALING" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Padding="14,8" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowHealFriendly}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Healing — Friendly"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Green — heals you give or receive"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowHealEnemy}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Healing — Enemy"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Yellow-green — heals enemies receive"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- OTHER section -->
+                            <TextBlock Text="OTHER" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Padding="14,8" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowLevelUp}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Level Up"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Gold / large — DING! with your new level"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,5">
+                                        <CheckBox IsChecked="{Binding Fct.ShowExpGain}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Experience Gain"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Faint yellow — fires on every kill, off by default"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+
                 <!-- ── Combat tab ────────────────────────────────────────── -->
                 <TabItem Header="Combat">
                     <Grid>

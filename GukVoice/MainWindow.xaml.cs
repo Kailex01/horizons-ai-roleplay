@@ -6,9 +6,10 @@ namespace GukVoice;
 
 public partial class MainWindow : Window
 {
-    private readonly MainViewModel _vm = new();
-    private readonly NotifyIcon    _tray;
-    private bool                   _isExiting;
+    private readonly MainViewModel      _vm = new();
+    private readonly NotifyIcon         _tray;
+    private FloatingCombatOverlay?      _overlay;
+    private bool                        _isExiting;
 
     // Tray menu items we need to update dynamically
     private readonly ToolStripMenuItem _monitorMenuItem;
@@ -20,9 +21,21 @@ public partial class MainWindow : Window
         DataContext = _vm;
 
         _tray = BuildTrayIcon(out _monitorMenuItem, out _showHideMenuItem);
+        InitOverlay();
 
         StateChanged += OnStateChanged;
         Closed       += OnClosed;
+    }
+
+    // ── FCT overlay ────────────────────────────────────────────────────────────
+
+    private void InitOverlay()
+    {
+        _overlay = new FloatingCombatOverlay();
+        _overlay.Show();
+
+        _vm.EqWindowMoved   += rect => Dispatcher.Invoke(() => _overlay.UpdatePosition(rect));
+        _vm.Fct.SpawnRequested += args => _overlay.Spawn(args);
     }
 
     // ── Tray icon setup ────────────────────────────────────────────────────────
@@ -131,6 +144,7 @@ public partial class MainWindow : Window
     {
         _tray.Visible = false;
         _tray.Dispose();
+        _overlay?.Close();
         _vm.Dispose();
     }
 

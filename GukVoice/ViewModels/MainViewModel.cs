@@ -9,10 +9,14 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     private readonly TtsQueueService  _ttsQueue;
     private readonly EqLogWatcher     _watcher;
     private readonly EqProcessMonitor _processMonitor;
+    private readonly EqWindowTracker  _windowTracker;
 
     public ObservableCollection<SpeakerItem>  Speakers     { get; } = new();
     public ObservableCollection<ActivityItem> ActivityFeed { get; } = new();
     public CombatViewModel                    Combat       { get; } = new();
+    public FctViewModel                       Fct          { get; } = new();
+
+    public event Action<Rect>? EqWindowMoved;
 
     private const int MaxFeedItems = 300;
 
@@ -50,6 +54,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _ttsQueue       = new TtsQueueService(_kokoro);
         _watcher        = new EqLogWatcher(AppConfig.Current.EqLogPath);
         _processMonitor = new EqProcessMonitor();
+        _windowTracker  = new EqWindowTracker();
+        _windowTracker.RectChanged += rect => EqWindowMoved?.Invoke(rect);
 
         foreach (var sp in AppConfig.Current.Speakers)
             Speakers.Add(new SpeakerItem(sp));
@@ -108,6 +114,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
         _watcher.Start();
         _processMonitor.Start();
+        _windowTracker.Start();
         IsWatching = true;
 
         var watchFile = Path.GetFileName(AppConfig.Current.EqLogPath);
@@ -123,7 +130,10 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         var result = EqLogParser.Parse(line, AppConfig.Current.PlayerName);
 
         if (result.CombatEvent != null)
+        {
             Combat.ProcessEvent(result.CombatEvent);
+            Fct.ProcessEvent(result.CombatEvent);
+        }
 
         if (result.LogEvent != null)
             HandleLogEvent(result.LogEvent);
@@ -298,6 +308,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         _watcher.Dispose();
         _processMonitor.Dispose();
+        _windowTracker.Dispose();
         _ttsQueue.Dispose();
     }
 
