@@ -16,6 +16,7 @@ public record FctSpawnArgs(FctCategory Category, string Text);
 public class FctViewModel : INotifyPropertyChanged
 {
     public event Action<FctSpawnArgs>? SpawnRequested;
+    public event Action<bool>?        EnabledChanged;
 
     // ── Per-category toggles (bound to FCT tab checkboxes) ────────────────────
 
@@ -24,7 +25,7 @@ public class FctViewModel : INotifyPropertyChanged
     public bool Enabled
     {
         get => S.Enabled;
-        set { S.Enabled = value; Save(); OnPropertyChanged(); }
+        set { S.Enabled = value; Save(); OnPropertyChanged(); EnabledChanged?.Invoke(value); }
     }
 
     public bool ShowDamageOut

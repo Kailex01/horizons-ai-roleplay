@@ -32,12 +32,26 @@ public partial class MainWindow : Window
     private void InitOverlay()
     {
         _overlay = new FloatingCombatOverlay();
-        _overlay.Show();
+
+        // Only show immediately if FCT is enabled and EQ is already running
+        if (_vm.Fct.Enabled && _vm.IsEqRunning)
+            _overlay.Show();
 
         _vm.EqWindowMoved      += rect => Dispatcher.Invoke(() => _overlay.UpdatePosition(rect));
         _vm.Fct.SpawnRequested += args => _overlay.Spawn(args);
-        _vm.EqClosed           += () => Dispatcher.Invoke(() => _overlay.Hide());
-        _vm.EqStarted          += () => Dispatcher.Invoke(() => _overlay.Show());
+
+        // EQ closed — always hide
+        _vm.EqClosed += () => Dispatcher.Invoke(() => _overlay.Hide());
+
+        // EQ started — only show if FCT is enabled
+        _vm.EqStarted += () => Dispatcher.Invoke(() => { if (_vm.Fct.Enabled) _overlay.Show(); });
+
+        // User toggled the Enable checkbox
+        _vm.Fct.EnabledChanged += enabled => Dispatcher.Invoke(() =>
+        {
+            if (enabled && _vm.IsEqRunning) _overlay.Show();
+            else                             _overlay.Hide();
+        });
     }
 
     // ── Tray icon setup ────────────────────────────────────────────────────────
