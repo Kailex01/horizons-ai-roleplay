@@ -167,21 +167,16 @@ public partial class FloatingCombatOverlay : Window
             }
             else
             {
-                // X: constant travel in the direction angle
+                // X and Y both travel along the angle direction with the same deceleration.
+                // No extra gravity fall — avoids the "hits a floor" snap at the end.
                 var xAnim = new DoubleAnimation(startX, startX + dx * TravelDistance, dur)
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
                 Storyboard.SetTarget(xAnim, tb);
                 Storyboard.SetTargetProperty(xAnim, new PropertyPath(Canvas.LeftProperty));
                 sb.Children.Add(xAnim);
 
-                // Y: reach travel peak then fall an extra 110px due to gravity
-                double yPeak = startY + dy * TravelDistance;
-                var yAnim = new DoubleAnimationUsingKeyFrames();
-                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY, KeyTime.FromPercent(0.0)));
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yPeak,  KeyTime.FromPercent(0.45))
-                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yPeak + 110, KeyTime.FromPercent(1.0))
-                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
+                var yAnim = new DoubleAnimation(startY, startY + dy * TravelDistance, dur)
+                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
                 Storyboard.SetTarget(yAnim, tb);
                 Storyboard.SetTargetProperty(yAnim, new PropertyPath(Canvas.TopProperty));
                 sb.Children.Add(yAnim);
