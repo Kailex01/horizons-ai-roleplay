@@ -67,6 +67,7 @@ public partial class MainWindow : Window
     // first event is lost — this call catches up using the tracker's saved rect.
     private void ShowAndSync()
     {
+        if (_overlay is null) return;
         _overlay.Show();
         var r = _vm.CurrentEqRect;
         if (!r.IsEmpty) _overlay.UpdatePosition(r);
