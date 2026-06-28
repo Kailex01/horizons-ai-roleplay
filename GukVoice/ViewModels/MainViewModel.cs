@@ -60,6 +60,7 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _processMonitor = new EqProcessMonitor();
         _windowTracker  = new EqWindowTracker();
         _windowTracker.RectChanged += rect => EqWindowMoved?.Invoke(rect);
+        _windowTracker.DiagReady   += OnEqDiagReady;
 
         _processMonitor.EqStarted += () => EqStarted?.Invoke();
         _processMonitor.EqClosed  += () => EqClosed?.Invoke();
@@ -204,6 +205,27 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         // Grace period in case of crash/restart
         Task.Delay(60_000).ContinueWith(_ =>
             LogArchiveService.Archive(AppConfig.Current.EqLogPath, folder));
+    }
+
+    // ── EQ window diagnostics ─────────────────────────────────────────────────
+
+    private void OnEqDiagReady(string info)
+    {
+        // Write to file next to the exe so the user can open it any time
+        try
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, "eq-window-diag.txt");
+            File.WriteAllText(path, info + $"\n\nCaptured: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        }
+        catch { /* non-critical */ }
+
+        // Also flash a short summary in the status bar
+        var lines = info.Split('\n');
+        var client = lines.FirstOrDefault(l => l.Contains("GetClientRect"))?.Split(':').LastOrDefault()?.Trim() ?? "?";
+        var dwm    = lines.FirstOrDefault(l => l.Contains("DwmExt"))?.Split("size").LastOrDefault()?.Trim() ?? "?";
+        var dpi    = lines.FirstOrDefault(l => l.Contains("GetDpi"))?.Split(':').LastOrDefault()?.Trim() ?? "?";
+        Application.Current.Dispatcher.Invoke(() =>
+            StatusText = $"EQ detected — client:{client}  DWM:{dwm}  DPI:{dpi} — see eq-window-diag.txt");
     }
 
     // ── Log archive ───────────────────────────────────────────────────────────
