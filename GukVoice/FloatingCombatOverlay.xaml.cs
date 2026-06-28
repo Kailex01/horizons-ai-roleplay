@@ -19,7 +19,7 @@ public partial class FloatingCombatOverlay : Window
     private const int WS_EX_TRANSPARENT = 0x00000020;
     private const int WS_EX_LAYERED     = 0x00080000;
 
-    private const double TravelDistance = 140.0;
+    private const double TravelDistance = 210.0; // 140 × 1.5 — push speed increased 50%
 
     private readonly Random _rng = new();
 
@@ -146,17 +146,18 @@ public partial class FloatingCombatOverlay : Window
             var halfDur = TimeSpan.FromSeconds(style.Duration * 0.5);
             var sb      = new Storyboard();
 
-            // Bottom of the canvas (text fully exits the screen)
-            double yBottom = OverlayCanvas.ActualHeight + textH;
+            // Fall target: halfway between the peak and the canvas bottom (half fall speed)
+            double yCanvasBottom = OverlayCanvas.ActualHeight + textH;
 
             if (style.Parabolic)
             {
-                // Arc up then fall through to the canvas bottom
+                double yParabolicPeak = startY - 90;
+                double yParabolicFall = yParabolicPeak + (yCanvasBottom - yParabolicPeak) / 2.0;
                 var yAnim = new DoubleAnimationUsingKeyFrames();
-                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY,        KeyTime.FromPercent(0.0)));
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(startY - 90,   KeyTime.FromPercent(0.35))
+                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY,          KeyTime.FromPercent(0.0)));
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yParabolicPeak,  KeyTime.FromPercent(0.35))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yBottom,       KeyTime.FromPercent(1.0))
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yParabolicFall,  KeyTime.FromPercent(1.0))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
                 Storyboard.SetTarget(yAnim, ot);
                 Storyboard.SetTargetProperty(yAnim, new PropertyPath(Canvas.TopProperty));
@@ -171,13 +172,14 @@ public partial class FloatingCombatOverlay : Window
                 Storyboard.SetTargetProperty(xAnim, new PropertyPath(Canvas.LeftProperty));
                 sb.Children.Add(xAnim);
 
-                // Y: rise to peak (EaseOut) then fall under gravity to canvas bottom (EaseIn)
+                // Y: rise to peak (EaseOut) then fall halfway to canvas bottom (EaseIn)
                 double yPeak = startY + dy * TravelDistance;
+                double yFall = yPeak + (yCanvasBottom - yPeak) / 2.0;
                 var yAnim = new DoubleAnimationUsingKeyFrames();
-                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY,  KeyTime.FromPercent(0.0)));
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yPeak,   KeyTime.FromPercent(0.40))
+                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY, KeyTime.FromPercent(0.0)));
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yPeak,  KeyTime.FromPercent(0.40))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yBottom, KeyTime.FromPercent(1.0))
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yFall,  KeyTime.FromPercent(1.0))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
                 Storyboard.SetTarget(yAnim, ot);
                 Storyboard.SetTargetProperty(yAnim, new PropertyPath(Canvas.TopProperty));
