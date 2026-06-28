@@ -23,13 +23,6 @@ public partial class FloatingCombatOverlay : Window
 
     private readonly Random _rng = new();
 
-    // ── DPI scale (physical pixels → WPF logical units) ───────────────────────
-    // Win32 GetClientRect/ClientToScreen always return physical pixels from our
-    // DPI-aware process. WPF window properties expect logical (WPF) units.
-    // On a 1440p monitor at 150% scaling: 1 logical unit = 1.5 physical pixels,
-    // so we must divide raw pixel values by 1.5 before assigning Left/Top/Width/Height.
-    private double _dpiScaleX = 1.0;
-    private double _dpiScaleY = 1.0;
 
     // ── Debug origin crosshair ─────────────────────────────────────────────────
     private readonly Line      _debugH     = new() { Stroke = Brushes.Red, StrokeThickness = 1.5 };
@@ -60,34 +53,18 @@ public partial class FloatingCombatOverlay : Window
         var hwnd  = new WindowInteropHelper(this).Handle;
         var style = GetWindowLong(hwnd, GWL_EXSTYLE);
         SetWindowLong(hwnd, GWL_EXSTYLE, style | WS_EX_TRANSPARENT | WS_EX_LAYERED);
-        RefreshDpiScale();
-    }
-
-    protected override void OnDpiChanged(DpiScale oldDpi, DpiScale newDpi)
-    {
-        base.OnDpiChanged(oldDpi, newDpi);
-        _dpiScaleX = 1.0 / newDpi.DpiScaleX;
-        _dpiScaleY = 1.0 / newDpi.DpiScaleY;
-    }
-
-    private void RefreshDpiScale()
-    {
-        var src = PresentationSource.FromVisual(this);
-        if (src?.CompositionTarget is { } ct)
-        {
-            _dpiScaleX = ct.TransformFromDevice.M11;
-            _dpiScaleY = ct.TransformFromDevice.M22;
-        }
     }
 
     // ── Called by MainWindow when EQ window moves / resizes ───────────────────
-    // eqRect is in physical pixels (from Win32). Convert to WPF logical units.
+    // EQ is DPI-unaware, so GetClientRect/ClientToScreen return 96-DPI virtual
+    // coordinates. WPF logical units are also based on 96 DPI, so no conversion
+    // is needed — assign the values directly.
     public void UpdatePosition(Rect eqRect)
     {
-        Left   = eqRect.Left   * _dpiScaleX;
-        Top    = eqRect.Top    * _dpiScaleY;
-        Width  = eqRect.Width  * _dpiScaleX;
-        Height = eqRect.Height * _dpiScaleY;
+        Left   = eqRect.Left;
+        Top    = eqRect.Top;
+        Width  = eqRect.Width;
+        Height = eqRect.Height;
         RefreshDebugMarker();
     }
 
@@ -116,6 +93,7 @@ public partial class FloatingCombatOverlay : Window
 
         Canvas.SetLeft(_debugDot,   cx - 4);
         Canvas.SetTop (_debugDot,   cy - 4);
+        _debugLabel.Text = $"FCT origin  canvas:{OverlayCanvas.ActualWidth:0}×{OverlayCanvas.ActualHeight:0}";
         Canvas.SetLeft(_debugLabel, cx + 6);
         Canvas.SetTop (_debugLabel, cy - 14);
     }
