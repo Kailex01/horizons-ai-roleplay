@@ -124,9 +124,10 @@ public partial class FloatingCombatOverlay : Window
             double cx = OverlayCanvas.ActualWidth  / 2.0 + s.OriginOffsetX;
             double cy = OverlayCanvas.ActualHeight / 2.0 + s.OriginOffsetY;
 
-            // Small scatter perpendicular to travel direction
-            double scatter = _rng.Next(-20, 20);
-            double rad     = style.AngleDeg * Math.PI / 180.0;
+            // Small scatter perpendicular to travel direction + ±5° angle variance
+            double scatter   = _rng.Next(-20, 20);
+            double angleVar  = _rng.Next(-5, 6);
+            double rad       = (style.AngleDeg + angleVar) * Math.PI / 180.0;
             double dx      = Math.Sin(rad);
             double dy      = -Math.Cos(rad);
             double perpDx  = -dy;
@@ -204,17 +205,23 @@ public partial class FloatingCombatOverlay : Window
         var fs = AppConfig.Current.Fct;
         return cat switch
         {
-            FctCategory.DamageOut    => new(Color.FromRgb(0xFF,0xFF,0xFF), fs.FontSizeDamageOut,    fs.FontSizeDamageOut    * 1.28, FontWeights.Normal, 1.4,  65),
-            FctCategory.DamageIn     => new(Color.FromRgb(0xFF,0x70,0x43), fs.FontSizeDamageIn,     fs.FontSizeDamageIn     * 1.28, FontWeights.Normal, 1.4, 300),
-            FctCategory.CritOut      => new(Color.FromRgb(0xFF,0xD7,0x00), fs.FontSizeCritOut,      fs.FontSizeCritOut      * 2.0,  FontWeights.Bold,   2.0,  45),
-            FctCategory.CritIn       => new(Color.FromRgb(0xFF,0x30,0x30), fs.FontSizeCritIn,       fs.FontSizeCritIn       * 2.0,  FontWeights.Bold,   2.0, 315),
-            FctCategory.SpellOut     => new(Color.FromRgb(0x64,0xB5,0xF6), fs.FontSizeSpellOut,     fs.FontSizeSpellOut     * 1.28, FontWeights.Normal, 1.4,  65),
-            FctCategory.SpellIn      => new(Color.FromRgb(0xCE,0x93,0xD8), fs.FontSizeSpellIn,      fs.FontSizeSpellIn      * 1.28, FontWeights.Normal, 1.4, 300),
-            FctCategory.HealFriendly => new(Color.FromRgb(0x81,0xC7,0x84), fs.FontSizeHealFriendly, fs.FontSizeHealFriendly * 1.28, FontWeights.Normal, 1.4,  15),
-            FctCategory.HealEnemy    => new(Color.FromRgb(0xCD,0xDC,0x39), fs.FontSizeHealEnemy,    fs.FontSizeHealEnemy    * 1.25, FontWeights.Normal, 1.4, 345),
-            FctCategory.LevelUp      => new(Color.FromRgb(0xFF,0xD7,0x00), fs.FontSizeLevelUp,      fs.FontSizeLevelUp      * 1.47, FontWeights.Bold,   3.0,   0, Parabolic: true),
-            FctCategory.ExpGain      => new(Color.FromRgb(0xFF,0xF5,0x9D), fs.FontSizeExpGain,      fs.FontSizeExpGain      * 1.23, FontWeights.Normal, 1.2,   0, Parabolic: true),
-            _                        => new(Colors.White,                   16,                      20,                             FontWeights.Normal, 1.4,   0),
+            FctCategory.DamageOut    => new(ParseColor(fs.ColorDamageOut),    fs.FontSizeDamageOut,    fs.FontSizeDamageOut    * 1.28, FontWeights.Normal, 1.4,  65),
+            FctCategory.DamageIn     => new(ParseColor(fs.ColorDamageIn),     fs.FontSizeDamageIn,     fs.FontSizeDamageIn     * 1.28, FontWeights.Normal, 1.4, 300),
+            FctCategory.CritOut      => new(ParseColor(fs.ColorCritOut),      fs.FontSizeCritOut,      fs.FontSizeCritOut      * 2.0,  FontWeights.Bold,   2.0,  45),
+            FctCategory.CritIn       => new(ParseColor(fs.ColorCritIn),       fs.FontSizeCritIn,       fs.FontSizeCritIn       * 2.0,  FontWeights.Bold,   2.0, 315),
+            FctCategory.SpellOut     => new(ParseColor(fs.ColorSpellOut),     fs.FontSizeSpellOut,     fs.FontSizeSpellOut     * 1.28, FontWeights.Normal, 1.4,  65),
+            FctCategory.SpellIn      => new(ParseColor(fs.ColorSpellIn),      fs.FontSizeSpellIn,      fs.FontSizeSpellIn      * 1.28, FontWeights.Normal, 1.4, 300),
+            FctCategory.HealFriendly => new(ParseColor(fs.ColorHealFriendly), fs.FontSizeHealFriendly, fs.FontSizeHealFriendly * 1.28, FontWeights.Normal, 1.4,  15),
+            FctCategory.HealEnemy    => new(ParseColor(fs.ColorHealEnemy),    fs.FontSizeHealEnemy,    fs.FontSizeHealEnemy    * 1.25, FontWeights.Normal, 1.4, 345),
+            FctCategory.LevelUp      => new(ParseColor(fs.ColorLevelUp),      fs.FontSizeLevelUp,      fs.FontSizeLevelUp      * 1.47, FontWeights.Bold,   3.0,   0, Parabolic: true),
+            FctCategory.ExpGain      => new(ParseColor(fs.ColorExpGain),      fs.FontSizeExpGain,      fs.FontSizeExpGain      * 1.23, FontWeights.Normal, 1.2,   0, Parabolic: true),
+            _                        => new(Colors.White,                      16,                      20,                             FontWeights.Normal, 1.4,   0),
         };
+    }
+
+    private static Color ParseColor(string hex)
+    {
+        try { return (Color)ColorConverter.ConvertFromString(hex); }
+        catch { return Colors.White; }
     }
 }

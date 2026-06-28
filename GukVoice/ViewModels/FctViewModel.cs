@@ -1,3 +1,4 @@
+using System.Windows.Media;
 using GukVoice.Models;
 
 namespace GukVoice.ViewModels;
@@ -198,6 +199,58 @@ public class FctViewModel : INotifyPropertyChanged
         if (!IsCategoryEnabled(category)) return;
 
         SpawnRequested?.Invoke(new FctSpawnArgs(category, text));
+    }
+
+    // ── Per-category colors ───────────────────────────────────────────────────
+
+    public SolidColorBrush BrushDamageOut    => MakeBrush(S.ColorDamageOut);
+    public SolidColorBrush BrushDamageIn     => MakeBrush(S.ColorDamageIn);
+    public SolidColorBrush BrushCritOut      => MakeBrush(S.ColorCritOut);
+    public SolidColorBrush BrushCritIn       => MakeBrush(S.ColorCritIn);
+    public SolidColorBrush BrushSpellOut     => MakeBrush(S.ColorSpellOut);
+    public SolidColorBrush BrushSpellIn      => MakeBrush(S.ColorSpellIn);
+    public SolidColorBrush BrushHealFriendly => MakeBrush(S.ColorHealFriendly);
+    public SolidColorBrush BrushHealEnemy    => MakeBrush(S.ColorHealEnemy);
+    public SolidColorBrush BrushLevelUp      => MakeBrush(S.ColorLevelUp);
+    public SolidColorBrush BrushExpGain      => MakeBrush(S.ColorExpGain);
+
+    public string GetColorHex(FctCategory cat) => cat switch
+    {
+        FctCategory.DamageOut    => S.ColorDamageOut,
+        FctCategory.DamageIn     => S.ColorDamageIn,
+        FctCategory.CritOut      => S.ColorCritOut,
+        FctCategory.CritIn       => S.ColorCritIn,
+        FctCategory.SpellOut     => S.ColorSpellOut,
+        FctCategory.SpellIn      => S.ColorSpellIn,
+        FctCategory.HealFriendly => S.ColorHealFriendly,
+        FctCategory.HealEnemy    => S.ColorHealEnemy,
+        FctCategory.LevelUp      => S.ColorLevelUp,
+        FctCategory.ExpGain      => S.ColorExpGain,
+        _                        => "#FFFFFF",
+    };
+
+    public void SetColor(FctCategory cat, string hex)
+    {
+        switch (cat)
+        {
+            case FctCategory.DamageOut:    S.ColorDamageOut    = hex; OnPropertyChanged(nameof(BrushDamageOut));    break;
+            case FctCategory.DamageIn:     S.ColorDamageIn     = hex; OnPropertyChanged(nameof(BrushDamageIn));     break;
+            case FctCategory.CritOut:      S.ColorCritOut      = hex; OnPropertyChanged(nameof(BrushCritOut));      break;
+            case FctCategory.CritIn:       S.ColorCritIn       = hex; OnPropertyChanged(nameof(BrushCritIn));       break;
+            case FctCategory.SpellOut:     S.ColorSpellOut     = hex; OnPropertyChanged(nameof(BrushSpellOut));     break;
+            case FctCategory.SpellIn:      S.ColorSpellIn      = hex; OnPropertyChanged(nameof(BrushSpellIn));      break;
+            case FctCategory.HealFriendly: S.ColorHealFriendly = hex; OnPropertyChanged(nameof(BrushHealFriendly)); break;
+            case FctCategory.HealEnemy:    S.ColorHealEnemy    = hex; OnPropertyChanged(nameof(BrushHealEnemy));    break;
+            case FctCategory.LevelUp:      S.ColorLevelUp      = hex; OnPropertyChanged(nameof(BrushLevelUp));      break;
+            case FctCategory.ExpGain:      S.ColorExpGain      = hex; OnPropertyChanged(nameof(BrushExpGain));      break;
+        }
+        Save();
+    }
+
+    private static SolidColorBrush MakeBrush(string hex)
+    {
+        try { return new((Color)ColorConverter.ConvertFromString(hex)); }
+        catch { return new(Colors.White); }
     }
 
     private bool IsCategoryEnabled(FctCategory cat) => cat switch

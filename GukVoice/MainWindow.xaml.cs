@@ -57,6 +57,30 @@ public partial class MainWindow : Window
         _vm.Fct.OriginChanged += () => Dispatcher.Invoke(() => _overlay.RefreshDebugMarker());
     }
 
+    // ── Color picker ──────────────────────────────────────────────────────────
+
+    private void OnColorSwatchClick(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Button btn) return;
+        var cat = Enum.Parse<FctCategory>((string)btn.Tag);
+        var hex = _vm.Fct.GetColorHex(cat);
+
+        // Parse current color to a System.Drawing.Color for the dialog
+        var r = Convert.ToInt32(hex.Substring(1, 2), 16);
+        var g = Convert.ToInt32(hex.Substring(3, 2), 16);
+        var b = Convert.ToInt32(hex.Substring(5, 2), 16);
+
+        using var dlg = new System.Windows.Forms.ColorDialog
+        {
+            Color    = System.Drawing.Color.FromArgb(r, g, b),
+            FullOpen = true,
+            AnyColor = true,
+        };
+        if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+        _vm.Fct.SetColor(cat, $"#{dlg.Color.R:X2}{dlg.Color.G:X2}{dlg.Color.B:X2}");
+    }
+
     // ── Tray icon setup ────────────────────────────────────────────────────────
 
     private NotifyIcon BuildTrayIcon(out ToolStripMenuItem monitorItem,

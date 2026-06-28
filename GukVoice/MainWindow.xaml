@@ -6,6 +6,30 @@
         Background="{StaticResource BgBrush}"
         WindowStyle="SingleBorderWindow">
 
+    <Window.Resources>
+        <!-- Flat colored square used as a color-picker swatch button -->
+        <Style x:Key="ColorSwatch" TargetType="Button">
+            <Setter Property="Width"           Value="22"/>
+            <Setter Property="Height"          Value="22"/>
+            <Setter Property="Padding"         Value="0"/>
+            <Setter Property="Margin"          Value="6,0,0,0"/>
+            <Setter Property="Cursor"          Value="Hand"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}"/>
+            <Setter Property="ToolTip"         Value="Click to change color"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="2"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -269,13 +293,14 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowDamageOut}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Damage Out  (melee)"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="White — hits you deal with melee attacks"
+                                            <TextBlock Text="hits you deal with melee attacks"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -287,11 +312,15 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="DamageOut" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushDamageOut}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowDamageIn}"
@@ -299,7 +328,7 @@
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Damage In  (melee)"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Orange — melee hits you take"
+                                            <TextBlock Text="melee hits you take"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -311,11 +340,15 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="DamageIn" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushDamageIn}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowCritOut}"
@@ -323,7 +356,7 @@
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Crit Out"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Gold / large — critical hits and crippling blows you land"
+                                            <TextBlock Text="critical hits and crippling blows you land"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -335,11 +368,15 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="CritOut" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushCritOut}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowCritIn}"
@@ -347,7 +384,7 @@
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Crit In"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Bright red / large — critical hits you take"
+                                            <TextBlock Text="critical hits you take"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -359,6 +396,9 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="CritIn" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushCritIn}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -375,13 +415,14 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowSpellOut}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Spell Damage Out"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Blue — non-melee damage you deal"
+                                            <TextBlock Text="non-melee damage you deal"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -393,11 +434,15 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="SpellOut" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushSpellOut}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowSpellIn}"
@@ -405,7 +450,7 @@
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Spell Damage In"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Purple — non-melee damage you take"
+                                            <TextBlock Text="non-melee damage you take"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -417,6 +462,9 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="SpellIn" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushSpellIn}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -433,13 +481,14 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowHealFriendly}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Healing — Friendly"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Green — heals you give or receive"
+                                            <TextBlock Text="heals you give or receive"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -451,11 +500,15 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="HealFriendly" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushHealFriendly}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowHealEnemy}"
@@ -463,7 +516,7 @@
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Healing — Enemy"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Yellow-green — heals enemies receive"
+                                            <TextBlock Text="heals enemies receive"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -475,6 +528,9 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="HealEnemy" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushHealEnemy}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -491,13 +547,14 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowLevelUp}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Level Up"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Gold / large — DING! with your new level"
+                                            <TextBlock Text="DING! with your new level — arcs up and falls"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -509,11 +566,15 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="LevelUp" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushLevelUp}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowExpGain}"
@@ -521,7 +582,7 @@
                                         <StackPanel Grid.Column="1">
                                             <TextBlock Text="Experience Gain"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
-                                            <TextBlock Text="Faint yellow — fires on every kill, off by default"
+                                            <TextBlock Text="fires on every kill, off by default"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="2" Orientation="Horizontal"
@@ -533,6 +594,9 @@
                                                      Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                      BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
                                         </StackPanel>
+                                        <Button Grid.Column="3" Tag="ExpGain" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.BrushExpGain}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>

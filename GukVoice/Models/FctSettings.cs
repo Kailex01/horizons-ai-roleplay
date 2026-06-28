@@ -30,4 +30,16 @@ public class FctSettings
     [JsonPropertyName("fs_heal_enemy")]    public double FontSizeHealEnemy    { get; set; } = 16;
     [JsonPropertyName("fs_level_up")]      public double FontSizeLevelUp      { get; set; } = 30;
     [JsonPropertyName("fs_exp_gain")]      public double FontSizeExpGain      { get; set; } = 13;
+
+    // ── Per-category colors (#RRGGBB) ─────────────────────────────────────────
+    [JsonPropertyName("clr_damage_out")]    public string ColorDamageOut    { get; set; } = "#FFFFFF";
+    [JsonPropertyName("clr_damage_in")]     public string ColorDamageIn     { get; set; } = "#FF7043";
+    [JsonPropertyName("clr_crit_out")]      public string ColorCritOut      { get; set; } = "#FFD700";
+    [JsonPropertyName("clr_crit_in")]       public string ColorCritIn       { get; set; } = "#FF3030";
+    [JsonPropertyName("clr_spell_out")]     public string ColorSpellOut     { get; set; } = "#64B5F6";
+    [JsonPropertyName("clr_spell_in")]      public string ColorSpellIn      { get; set; } = "#CE93D8";
+    [JsonPropertyName("clr_heal_friendly")] public string ColorHealFriendly { get; set; } = "#81C784";
+    [JsonPropertyName("clr_heal_enemy")]    public string ColorHealEnemy    { get; set; } = "#CDDC39";
+    [JsonPropertyName("clr_level_up")]      public string ColorLevelUp      { get; set; } = "#FFD700";
+    [JsonPropertyName("clr_exp_gain")]      public string ColorExpGain      { get; set; } = "#FFF59D";
 }
