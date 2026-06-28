@@ -203,6 +203,7 @@ public class FctViewModel : INotifyPropertyChanged
 
     // ── Per-category colors ───────────────────────────────────────────────────
 
+    // ── Fill color brushes ────────────────────────────────────────────────────
     public SolidColorBrush BrushDamageOut    => MakeBrush(S.ColorDamageOut);
     public SolidColorBrush BrushDamageIn     => MakeBrush(S.ColorDamageIn);
     public SolidColorBrush BrushCritOut      => MakeBrush(S.ColorCritOut);
@@ -213,6 +214,18 @@ public class FctViewModel : INotifyPropertyChanged
     public SolidColorBrush BrushHealEnemy    => MakeBrush(S.ColorHealEnemy);
     public SolidColorBrush BrushLevelUp      => MakeBrush(S.ColorLevelUp);
     public SolidColorBrush BrushExpGain      => MakeBrush(S.ColorExpGain);
+
+    // ── Stroke color brushes ──────────────────────────────────────────────────
+    public SolidColorBrush StrokeBrushDamageOut    => MakeBrush(S.StrokeDamageOut);
+    public SolidColorBrush StrokeBrushDamageIn     => MakeBrush(S.StrokeDamageIn);
+    public SolidColorBrush StrokeBrushCritOut      => MakeBrush(S.StrokeCritOut);
+    public SolidColorBrush StrokeBrushCritIn       => MakeBrush(S.StrokeCritIn);
+    public SolidColorBrush StrokeBrushSpellOut     => MakeBrush(S.StrokeSpellOut);
+    public SolidColorBrush StrokeBrushSpellIn      => MakeBrush(S.StrokeSpellIn);
+    public SolidColorBrush StrokeBrushHealFriendly => MakeBrush(S.StrokeHealFriendly);
+    public SolidColorBrush StrokeBrushHealEnemy    => MakeBrush(S.StrokeHealEnemy);
+    public SolidColorBrush StrokeBrushLevelUp      => MakeBrush(S.StrokeLevelUp);
+    public SolidColorBrush StrokeBrushExpGain      => MakeBrush(S.StrokeExpGain);
 
     public string GetColorHex(FctCategory cat) => cat switch
     {
@@ -229,6 +242,21 @@ public class FctViewModel : INotifyPropertyChanged
         _                        => "#FFFFFF",
     };
 
+    public string GetStrokeHex(FctCategory cat) => cat switch
+    {
+        FctCategory.DamageOut    => S.StrokeDamageOut,
+        FctCategory.DamageIn     => S.StrokeDamageIn,
+        FctCategory.CritOut      => S.StrokeCritOut,
+        FctCategory.CritIn       => S.StrokeCritIn,
+        FctCategory.SpellOut     => S.StrokeSpellOut,
+        FctCategory.SpellIn      => S.StrokeSpellIn,
+        FctCategory.HealFriendly => S.StrokeHealFriendly,
+        FctCategory.HealEnemy    => S.StrokeHealEnemy,
+        FctCategory.LevelUp      => S.StrokeLevelUp,
+        FctCategory.ExpGain      => S.StrokeExpGain,
+        _                        => "#000000",
+    };
+
     public void SetColor(FctCategory cat, string hex)
     {
         switch (cat)
@@ -243,6 +271,24 @@ public class FctViewModel : INotifyPropertyChanged
             case FctCategory.HealEnemy:    S.ColorHealEnemy    = hex; OnPropertyChanged(nameof(BrushHealEnemy));    break;
             case FctCategory.LevelUp:      S.ColorLevelUp      = hex; OnPropertyChanged(nameof(BrushLevelUp));      break;
             case FctCategory.ExpGain:      S.ColorExpGain      = hex; OnPropertyChanged(nameof(BrushExpGain));      break;
+        }
+        Save();
+    }
+
+    public void SetStroke(FctCategory cat, string hex)
+    {
+        switch (cat)
+        {
+            case FctCategory.DamageOut:    S.StrokeDamageOut    = hex; OnPropertyChanged(nameof(StrokeBrushDamageOut));    break;
+            case FctCategory.DamageIn:     S.StrokeDamageIn     = hex; OnPropertyChanged(nameof(StrokeBrushDamageIn));     break;
+            case FctCategory.CritOut:      S.StrokeCritOut      = hex; OnPropertyChanged(nameof(StrokeBrushCritOut));      break;
+            case FctCategory.CritIn:       S.StrokeCritIn       = hex; OnPropertyChanged(nameof(StrokeBrushCritIn));       break;
+            case FctCategory.SpellOut:     S.StrokeSpellOut     = hex; OnPropertyChanged(nameof(StrokeBrushSpellOut));     break;
+            case FctCategory.SpellIn:      S.StrokeSpellIn      = hex; OnPropertyChanged(nameof(StrokeBrushSpellIn));      break;
+            case FctCategory.HealFriendly: S.StrokeHealFriendly = hex; OnPropertyChanged(nameof(StrokeBrushHealFriendly)); break;
+            case FctCategory.HealEnemy:    S.StrokeHealEnemy    = hex; OnPropertyChanged(nameof(StrokeBrushHealEnemy));    break;
+            case FctCategory.LevelUp:      S.StrokeLevelUp      = hex; OnPropertyChanged(nameof(StrokeBrushLevelUp));      break;
+            case FctCategory.ExpGain:      S.StrokeExpGain      = hex; OnPropertyChanged(nameof(StrokeBrushExpGain));      break;
         }
         Save();
     }

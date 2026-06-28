@@ -78,10 +78,11 @@ public partial class MainWindow : Window
     private void OnColorSwatchClick(object sender, RoutedEventArgs e)
     {
         if (sender is not System.Windows.Controls.Button btn) return;
-        var cat = Enum.Parse<FctCategory>((string)btn.Tag);
-        var hex = _vm.Fct.GetColorHex(cat);
+        var parts    = ((string)btn.Tag).Split('|');
+        var cat      = Enum.Parse<FctCategory>(parts[0]);
+        bool isStroke = parts.Length > 1 && parts[1] == "Stroke";
 
-        // Parse current color to a System.Drawing.Color for the dialog
+        var hex = isStroke ? _vm.Fct.GetStrokeHex(cat) : _vm.Fct.GetColorHex(cat);
         var r = Convert.ToInt32(hex.Substring(1, 2), 16);
         var g = Convert.ToInt32(hex.Substring(3, 2), 16);
         var b = Convert.ToInt32(hex.Substring(5, 2), 16);
@@ -94,7 +95,9 @@ public partial class MainWindow : Window
         };
         if (dlg.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 
-        _vm.Fct.SetColor(cat, $"#{dlg.Color.R:X2}{dlg.Color.G:X2}{dlg.Color.B:X2}");
+        var newHex = $"#{dlg.Color.R:X2}{dlg.Color.G:X2}{dlg.Color.B:X2}";
+        if (isStroke) _vm.Fct.SetStroke(cat, newHex);
+        else          _vm.Fct.SetColor(cat, newHex);
     }
 
     // ── Tray icon setup ────────────────────────────────────────────────────────

@@ -31,7 +31,7 @@ public class FctSettings
     [JsonPropertyName("fs_level_up")]      public double FontSizeLevelUp      { get; set; } = 30;
     [JsonPropertyName("fs_exp_gain")]      public double FontSizeExpGain      { get; set; } = 13;
 
-    // ── Per-category colors (#RRGGBB) ─────────────────────────────────────────
+    // ── Per-category fill colors (#RRGGBB) ───────────────────────────────────
     [JsonPropertyName("clr_damage_out")]    public string ColorDamageOut    { get; set; } = "#FFFFFF";
     [JsonPropertyName("clr_damage_in")]     public string ColorDamageIn     { get; set; } = "#FF7043";
     [JsonPropertyName("clr_crit_out")]      public string ColorCritOut      { get; set; } = "#FFD700";
@@ -42,4 +42,16 @@ public class FctSettings
     [JsonPropertyName("clr_heal_enemy")]    public string ColorHealEnemy    { get; set; } = "#CDDC39";
     [JsonPropertyName("clr_level_up")]      public string ColorLevelUp      { get; set; } = "#FFD700";
     [JsonPropertyName("clr_exp_gain")]      public string ColorExpGain      { get; set; } = "#FFF59D";
+
+    // ── Per-category stroke (outline) colors (#RRGGBB) ───────────────────────
+    [JsonPropertyName("stk_damage_out")]    public string StrokeDamageOut    { get; set; } = "#000000";
+    [JsonPropertyName("stk_damage_in")]     public string StrokeDamageIn     { get; set; } = "#000000";
+    [JsonPropertyName("stk_crit_out")]      public string StrokeCritOut      { get; set; } = "#000000";
+    [JsonPropertyName("stk_crit_in")]       public string StrokeCritIn       { get; set; } = "#000000";
+    [JsonPropertyName("stk_spell_out")]     public string StrokeSpellOut     { get; set; } = "#000000";
+    [JsonPropertyName("stk_spell_in")]      public string StrokeSpellIn      { get; set; } = "#000000";
+    [JsonPropertyName("stk_heal_friendly")] public string StrokeHealFriendly { get; set; } = "#000000";
+    [JsonPropertyName("stk_heal_enemy")]    public string StrokeHealEnemy    { get; set; } = "#000000";
+    [JsonPropertyName("stk_level_up")]      public string StrokeLevelUp      { get; set; } = "#000000";
+    [JsonPropertyName("stk_exp_gain")]      public string StrokeExpGain      { get; set; } = "#000000";
 }

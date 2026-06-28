@@ -299,6 +299,7 @@
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowDamageOut}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
@@ -319,12 +320,18 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="DamageOut" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushDamageOut}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="DamageOut|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushDamageOut}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -347,12 +354,18 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="DamageIn" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushDamageIn}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="DamageIn|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushDamageIn}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -375,12 +388,18 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="CritOut" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushCritOut}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="CritOut|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushCritOut}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -403,7 +422,12 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="CritIn" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushCritIn}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="CritIn|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushCritIn}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -419,6 +443,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -441,12 +466,18 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="SpellOut" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushSpellOut}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="SpellOut|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushSpellOut}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -469,7 +500,12 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="SpellIn" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushSpellIn}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="SpellIn|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushSpellIn}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -485,6 +521,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -507,12 +544,18 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="HealFriendly" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushHealFriendly}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="HealFriendly|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushHealFriendly}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -535,7 +578,12 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="HealEnemy" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushHealEnemy}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="HealEnemy|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushHealEnemy}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -551,6 +599,7 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -573,12 +622,18 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="LevelUp" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushLevelUp}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="LevelUp|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushLevelUp}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                     <Grid Margin="0,5">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
@@ -601,7 +656,12 @@
                                         </StackPanel>
                                         <Button Grid.Column="3" Tag="ExpGain" Click="OnColorSwatchClick"
                                                 Background="{Binding Fct.BrushExpGain}"
-                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"/>
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Fill color"/>
+                                        <Button Grid.Column="4" Tag="ExpGain|Stroke" Click="OnColorSwatchClick"
+                                                Background="{Binding Fct.StrokeBrushExpGain}"
+                                                Style="{StaticResource ColorSwatch}" VerticalAlignment="Center"
+                                                ToolTip="Outline color"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
