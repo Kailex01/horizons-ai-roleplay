@@ -20,7 +20,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
     public event Action?       EqStarted;
     public event Action?       EqClosed;
 
-    public bool IsEqRunning => _processMonitor.IsRunning;
+    public bool IsEqRunning   => _processMonitor.IsRunning;
+    public Rect CurrentEqRect => _windowTracker.CurrentRect;
 
     private const int MaxFeedItems = 300;
 

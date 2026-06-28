@@ -56,15 +56,18 @@ public partial class FloatingCombatOverlay : Window
     }
 
     // ── Called by MainWindow when EQ window moves / resizes ───────────────────
-    // EQ is DPI-unaware, so GetClientRect/ClientToScreen return 96-DPI virtual
-    // coordinates. WPF logical units are also based on 96 DPI, so no conversion
-    // is needed — assign the values directly.
+    // GetClientRect/ClientToScreen return physical pixels (our process is DPI-aware).
+    // WPF Window properties expect logical units. Read the scale factor each call
+    // so it stays correct if the window moves to a different monitor.
     public void UpdatePosition(Rect eqRect)
     {
-        Left   = eqRect.Left;
-        Top    = eqRect.Top;
-        Width  = eqRect.Width;
-        Height = eqRect.Height;
+        var src = PresentationSource.FromVisual(this);
+        double sx = src?.CompositionTarget?.TransformFromDevice.M11 ?? 1.0;
+        double sy = src?.CompositionTarget?.TransformFromDevice.M22 ?? 1.0;
+        Left   = eqRect.Left   * sx;
+        Top    = eqRect.Top    * sy;
+        Width  = eqRect.Width  * sx;
+        Height = eqRect.Height * sy;
         RefreshDebugMarker();
     }
 

@@ -33,28 +33,43 @@ public partial class MainWindow : Window
     {
         _overlay = new FloatingCombatOverlay();
 
-        // Only show immediately if FCT is enabled and EQ is already running
-        if (_vm.Fct.Enabled && _vm.IsEqRunning)
-            _overlay.Show();
-
+        // Subscribe before the initial Show so UpdatePosition is wired first
         _vm.EqWindowMoved      += rect => Dispatcher.Invoke(() => _overlay.UpdatePosition(rect));
         _vm.Fct.SpawnRequested += args => _overlay.Spawn(args);
 
         // EQ closed — always hide
         _vm.EqClosed += () => Dispatcher.Invoke(() => _overlay.Hide());
 
-        // EQ started — only show if FCT is enabled
-        _vm.EqStarted += () => Dispatcher.Invoke(() => { if (_vm.Fct.Enabled) _overlay.Show(); });
+        // EQ started — show if enabled, then sync position
+        _vm.EqStarted += () => Dispatcher.Invoke(() =>
+        {
+            if (!_vm.Fct.Enabled) return;
+            ShowAndSync();
+        });
 
         // User toggled the Enable checkbox
         _vm.Fct.EnabledChanged += enabled => Dispatcher.Invoke(() =>
         {
-            if (enabled && _vm.IsEqRunning) _overlay.Show();
+            if (enabled && _vm.IsEqRunning) ShowAndSync();
             else                             _overlay.Hide();
         });
 
         // Origin offset or debug toggle changed — reposition crosshair
         _vm.Fct.OriginChanged += () => Dispatcher.Invoke(() => _overlay.RefreshDebugMarker());
+
+        // Show immediately if FCT is enabled and EQ is already running
+        if (_vm.Fct.Enabled && _vm.IsEqRunning)
+            ShowAndSync();
+    }
+
+    // Show the overlay then immediately apply the current EQ window rect.
+    // RectChanged fires during startup before InitOverlay subscribes, so the
+    // first event is lost — this call catches up using the tracker's saved rect.
+    private void ShowAndSync()
+    {
+        _overlay.Show();
+        var r = _vm.CurrentEqRect;
+        if (!r.IsEmpty) _overlay.UpdatePosition(r);
     }
 
     // ── Color picker ──────────────────────────────────────────────────────────
