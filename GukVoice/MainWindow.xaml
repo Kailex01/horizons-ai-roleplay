@@ -274,6 +274,27 @@
                                                    VerticalAlignment="Center" Margin="14,0,0,0"/>
                                     </StackPanel>
                                     <StackPanel Orientation="Horizontal" Margin="0,8">
+                                        <TextBlock Text="Font" Width="58"
+                                                   Foreground="{StaticResource SubtextBrush}" FontSize="11"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding Fct.FontFamily, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="150" FontSize="12" Padding="4,3"
+                                                 Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                 ToolTip="Any installed Windows font name, e.g. Impact, Arial, Consolas"/>
+                                        <TextBlock Text="Spread" Width="52"
+                                                   Foreground="{StaticResource SubtextBrush}" FontSize="11"
+                                                   VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                        <TextBox Text="{Binding Fct.AngleSpread, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="40" FontSize="12" Padding="4,3"
+                                                 Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                 ToolTip="Max angle variance in degrees (0 = no spread)"/>
+                                        <TextBlock Text="°  angle variance"
+                                                   Foreground="{StaticResource SubtextBrush}" FontSize="10"
+                                                   VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,8">
                                         <CheckBox IsChecked="{Binding Fct.ShowDebugOrigin}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
                                         <StackPanel>

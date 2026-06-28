@@ -113,6 +113,7 @@ public partial class FloatingCombatOverlay : Window
                 Text            = args.Text,
                 FontSize        = style.StartSize,
                 FontWeight      = style.Weight,
+                FontFamilyName  = AppConfig.Current.Fct.FontFamily,
                 Foreground      = new SolidColorBrush(style.Color),
                 StrokeBrush     = new SolidColorBrush(style.StrokeColor),
                 StrokeThickness = 1.5,
@@ -126,9 +127,10 @@ public partial class FloatingCombatOverlay : Window
             double cx = OverlayCanvas.ActualWidth  / 2.0 + s.OriginOffsetX;
             double cy = OverlayCanvas.ActualHeight / 2.0 + s.OriginOffsetY;
 
-            // Small scatter perpendicular to travel direction + ±5° angle variance
+            // Small scatter perpendicular to travel direction + configurable angle variance
+            int    spread   = AppConfig.Current.Fct.AngleSpread;
             double scatter  = _rng.Next(-20, 20);
-            double angleVar = _rng.Next(-5, 6);
+            double angleVar = spread > 0 ? _rng.Next(-spread, spread + 1) : 0;
             double rad      = (style.AngleDeg + angleVar) * Math.PI / 180.0;
             double dx       = Math.Sin(rad);
             double dy       = -Math.Cos(rad);

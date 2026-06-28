@@ -101,6 +101,19 @@ public class FctViewModel : INotifyPropertyChanged
         set { S.ShowDebugOrigin = value; Save(); OnPropertyChanged(); OriginChanged?.Invoke(); }
     }
 
+    // ── Global text appearance ────────────────────────────────────────────────
+
+    public string FontFamily
+    {
+        get => S.FontFamily;
+        set { S.FontFamily = value; Save(); OnPropertyChanged(); }
+    }
+    public int AngleSpread
+    {
+        get => S.AngleSpread;
+        set { S.AngleSpread = Math.Max(0, value); Save(); OnPropertyChanged(); }
+    }
+
     // ── Per-category font sizes ───────────────────────────────────────────────
 
     public double FontSizeDamageOut

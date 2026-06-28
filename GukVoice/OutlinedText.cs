@@ -47,15 +47,24 @@ public sealed class OutlinedText : FrameworkElement
     public Brush      StrokeBrush     { get => (Brush)GetValue(StrokeBrushProperty);       set => SetValue(StrokeBrushProperty, value); }
     public double     StrokeThickness { get => (double)GetValue(StrokeThicknessProperty); set => SetValue(StrokeThicknessProperty, value); }
 
+    private string _fontFamilyName = "Segoe UI";
+    public string FontFamilyName
+    {
+        get => _fontFamilyName;
+        set { _fontFamilyName = value; InvalidateMeasure(); InvalidateVisual(); }
+    }
+
     private FormattedText MakeFormattedText()
     {
-        var src = PresentationSource.FromVisual(this);
-        double ppd = src?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
+        var src      = PresentationSource.FromVisual(this);
+        double ppd   = src?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
+        var family   = new FontFamily(_fontFamilyName);
+        var typeface = new Typeface(family, FontStyles.Normal, FontWeight, FontStretches.Normal);
         return new FormattedText(
             Text ?? "",
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
-            new Typeface(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeight, FontStretches.Normal),
+            typeface,
             FontSize,
             Foreground,
             ppd);
