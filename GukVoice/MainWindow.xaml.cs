@@ -52,6 +52,9 @@ public partial class MainWindow : Window
             if (enabled && _vm.IsEqRunning) _overlay.Show();
             else                             _overlay.Hide();
         });
+
+        // Origin offset or debug toggle changed — reposition crosshair
+        _vm.Fct.OriginChanged += () => Dispatcher.Invoke(() => _overlay.RefreshDebugMarker());
     }
 
     // ── Tray icon setup ────────────────────────────────────────────────────────

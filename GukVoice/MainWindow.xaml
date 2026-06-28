@@ -218,6 +218,45 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- ORIGIN section -->
+                            <TextBlock Text="ORIGIN" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Padding="14,10" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4">
+                                        <TextBlock Text="X Offset" Width="58"
+                                                   Foreground="{StaticResource SubtextBrush}" FontSize="11"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding Fct.OriginOffsetX, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="52" FontSize="12" Padding="4,3"
+                                                 Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        <TextBlock Text="Y Offset" Width="58"
+                                                   Foreground="{StaticResource SubtextBrush}" FontSize="11"
+                                                   VerticalAlignment="Center" Margin="14,0,0,0"/>
+                                        <TextBox Text="{Binding Fct.OriginOffsetY, UpdateSourceTrigger=PropertyChanged}"
+                                                 Width="52" FontSize="12" Padding="4,3"
+                                                 Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        <TextBlock Text="pixels from window center  (+right / +down)"
+                                                   Foreground="{StaticResource SubtextBrush}" FontSize="10"
+                                                   VerticalAlignment="Center" Margin="14,0,0,0"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,8">
+                                        <CheckBox IsChecked="{Binding Fct.ShowDebugOrigin}"
+                                                  VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                        <StackPanel>
+                                            <TextBlock Text="Show origin marker"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="13"/>
+                                            <TextBlock Text="Red crosshair at the spawn point — turn off before playing"
+                                                       Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
                             <!-- DAMAGE section -->
                             <TextBlock Text="DAMAGE" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
                             <Border Background="{StaticResource SurfaceBrush}"
@@ -225,46 +264,102 @@
                                     BorderThickness="1" CornerRadius="4"
                                     Padding="14,8" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowDamageOut}"
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowDamageOut}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Damage Out  (melee)"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="White — hits you deal with melee attacks"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowDamageIn}"
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeDamageOut, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowDamageIn}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Damage In  (melee)"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Orange — melee hits you take"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowCritOut}"
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeDamageIn, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowCritOut}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Crit Out"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Gold / large — critical hits and crippling blows you land"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowCritIn}"
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeCritOut, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowCritIn}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Crit In"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Bright red / large — critical hits you take"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeCritIn, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
@@ -275,26 +370,54 @@
                                     BorderThickness="1" CornerRadius="4"
                                     Padding="14,8" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowSpellOut}"
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowSpellOut}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Spell Damage Out"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Blue — non-melee damage you deal"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowSpellIn}"
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeSpellOut, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowSpellIn}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Spell Damage In"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Purple — non-melee damage you take"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeSpellIn, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
@@ -305,26 +428,54 @@
                                     BorderThickness="1" CornerRadius="4"
                                     Padding="14,8" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowHealFriendly}"
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowHealFriendly}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Healing — Friendly"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Green — heals you give or receive"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowHealEnemy}"
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeHealFriendly, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowHealEnemy}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Healing — Enemy"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Yellow-green — heals enemies receive"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeHealEnemy, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
@@ -335,26 +486,54 @@
                                     BorderThickness="1" CornerRadius="4"
                                     Padding="14,8" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowLevelUp}"
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowLevelUp}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Level Up"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Gold / large — DING! with your new level"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,5">
-                                        <CheckBox IsChecked="{Binding Fct.ShowExpGain}"
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeLevelUp, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <Grid Margin="0,5">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox Grid.Column="0" IsChecked="{Binding Fct.ShowExpGain}"
                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
-                                        <StackPanel>
+                                        <StackPanel Grid.Column="1">
                                             <TextBlock Text="Experience Gain"
                                                        Foreground="{StaticResource TextBrush}" FontSize="13"/>
                                             <TextBlock Text="Faint yellow — fires on every kill, off by default"
                                                        Foreground="{StaticResource SubtextBrush}" FontSize="11"/>
                                         </StackPanel>
-                                    </StackPanel>
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal"
+                                                    VerticalAlignment="Center" Margin="12,0,0,0">
+                                            <TextBlock Text="Size" Foreground="{StaticResource SubtextBrush}"
+                                                       FontSize="10" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                            <TextBox Text="{Binding Fct.FontSizeExpGain, StringFormat=0, UpdateSourceTrigger=PropertyChanged}"
+                                                     Width="42" FontSize="12" Padding="4,3"
+                                                     Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                     BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
