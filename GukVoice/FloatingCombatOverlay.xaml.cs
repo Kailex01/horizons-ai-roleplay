@@ -173,12 +173,12 @@ public partial class FloatingCombatOverlay : Window
 
             if (style.Parabolic)
             {
-                // Arc up then fall back down
+                // Arc up then fall hard — larger drop for more dramatic gravity
                 var yAnim = new DoubleAnimationUsingKeyFrames();
-                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY,      KeyTime.FromPercent(0.0)));
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(startY - 90, KeyTime.FromPercent(0.4))
+                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY,       KeyTime.FromPercent(0.0)));
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(startY - 90,  KeyTime.FromPercent(0.35))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(startY + 60, KeyTime.FromPercent(1.0))
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(startY + 180, KeyTime.FromPercent(1.0))
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
                 Storyboard.SetTarget(yAnim, tb);
                 Storyboard.SetTargetProperty(yAnim, new PropertyPath(Canvas.TopProperty));
@@ -186,14 +186,21 @@ public partial class FloatingCombatOverlay : Window
             }
             else
             {
+                // X: constant travel in the direction angle
                 var xAnim = new DoubleAnimation(startX, startX + dx * TravelDistance, dur)
                     { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
                 Storyboard.SetTarget(xAnim, tb);
                 Storyboard.SetTargetProperty(xAnim, new PropertyPath(Canvas.LeftProperty));
                 sb.Children.Add(xAnim);
 
-                var yAnim = new DoubleAnimation(startY, startY + dy * TravelDistance, dur)
-                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } };
+                // Y: reach travel peak then fall an extra 110px due to gravity
+                double yPeak = startY + dy * TravelDistance;
+                var yAnim = new DoubleAnimationUsingKeyFrames();
+                yAnim.KeyFrames.Add(new LinearDoubleKeyFrame(startY, KeyTime.FromPercent(0.0)));
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yPeak,  KeyTime.FromPercent(0.45))
+                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
+                yAnim.KeyFrames.Add(new EasingDoubleKeyFrame(yPeak + 110, KeyTime.FromPercent(1.0))
+                    { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn } });
                 Storyboard.SetTarget(yAnim, tb);
                 Storyboard.SetTargetProperty(yAnim, new PropertyPath(Canvas.TopProperty));
                 sb.Children.Add(yAnim);
@@ -232,17 +239,17 @@ public partial class FloatingCombatOverlay : Window
         var fs = AppConfig.Current.Fct;
         return cat switch
         {
-            FctCategory.DamageOut    => new(ParseColor(fs.ColorDamageOut),    fs.FontSizeDamageOut,    fs.FontSizeDamageOut    * 1.28, FontWeights.Normal, 1.4,  65),
-            FctCategory.DamageIn     => new(ParseColor(fs.ColorDamageIn),     fs.FontSizeDamageIn,     fs.FontSizeDamageIn     * 1.28, FontWeights.Normal, 1.4, 300),
-            FctCategory.CritOut      => new(ParseColor(fs.ColorCritOut),      fs.FontSizeCritOut,      fs.FontSizeCritOut      * 2.0,  FontWeights.Bold,   2.0,  45),
-            FctCategory.CritIn       => new(ParseColor(fs.ColorCritIn),       fs.FontSizeCritIn,       fs.FontSizeCritIn       * 2.0,  FontWeights.Bold,   2.0, 315),
-            FctCategory.SpellOut     => new(ParseColor(fs.ColorSpellOut),     fs.FontSizeSpellOut,     fs.FontSizeSpellOut     * 1.28, FontWeights.Normal, 1.4,  65),
-            FctCategory.SpellIn      => new(ParseColor(fs.ColorSpellIn),      fs.FontSizeSpellIn,      fs.FontSizeSpellIn      * 1.28, FontWeights.Normal, 1.4, 300),
-            FctCategory.HealFriendly => new(ParseColor(fs.ColorHealFriendly), fs.FontSizeHealFriendly, fs.FontSizeHealFriendly * 1.28, FontWeights.Normal, 1.4,  15),
-            FctCategory.HealEnemy    => new(ParseColor(fs.ColorHealEnemy),    fs.FontSizeHealEnemy,    fs.FontSizeHealEnemy    * 1.25, FontWeights.Normal, 1.4, 345),
-            FctCategory.LevelUp      => new(ParseColor(fs.ColorLevelUp),      fs.FontSizeLevelUp,      fs.FontSizeLevelUp      * 1.47, FontWeights.Bold,   3.0,   0, Parabolic: true),
-            FctCategory.ExpGain      => new(ParseColor(fs.ColorExpGain),      fs.FontSizeExpGain,      fs.FontSizeExpGain      * 1.23, FontWeights.Normal, 1.2,   0, Parabolic: true),
-            _                        => new(Colors.White,                      16,                      20,                             FontWeights.Normal, 1.4,   0),
+            FctCategory.DamageOut    => new(ParseColor(fs.ColorDamageOut),    fs.FontSizeDamageOut,    fs.FontSizeDamageOut    * 1.28, FontWeights.Normal, 2.2,  65),
+            FctCategory.DamageIn     => new(ParseColor(fs.ColorDamageIn),     fs.FontSizeDamageIn,     fs.FontSizeDamageIn     * 1.28, FontWeights.Normal, 2.2, 300),
+            FctCategory.CritOut      => new(ParseColor(fs.ColorCritOut),      fs.FontSizeCritOut,      fs.FontSizeCritOut      * 2.0,  FontWeights.Bold,   3.0,  45),
+            FctCategory.CritIn       => new(ParseColor(fs.ColorCritIn),       fs.FontSizeCritIn,       fs.FontSizeCritIn       * 2.0,  FontWeights.Bold,   3.0, 315),
+            FctCategory.SpellOut     => new(ParseColor(fs.ColorSpellOut),     fs.FontSizeSpellOut,     fs.FontSizeSpellOut     * 1.28, FontWeights.Normal, 2.2,  65),
+            FctCategory.SpellIn      => new(ParseColor(fs.ColorSpellIn),      fs.FontSizeSpellIn,      fs.FontSizeSpellIn      * 1.28, FontWeights.Normal, 2.2, 300),
+            FctCategory.HealFriendly => new(ParseColor(fs.ColorHealFriendly), fs.FontSizeHealFriendly, fs.FontSizeHealFriendly * 1.28, FontWeights.Normal, 2.2,  15),
+            FctCategory.HealEnemy    => new(ParseColor(fs.ColorHealEnemy),    fs.FontSizeHealEnemy,    fs.FontSizeHealEnemy    * 1.25, FontWeights.Normal, 2.2, 345),
+            FctCategory.LevelUp      => new(ParseColor(fs.ColorLevelUp),      fs.FontSizeLevelUp,      fs.FontSizeLevelUp      * 1.47, FontWeights.Bold,   4.5,   0, Parabolic: true),
+            FctCategory.ExpGain      => new(ParseColor(fs.ColorExpGain),      fs.FontSizeExpGain,      fs.FontSizeExpGain      * 1.23, FontWeights.Normal, 2.0,   0, Parabolic: true),
+            _                        => new(Colors.White,                      16,                      20,                             FontWeights.Normal, 2.2,   0),
         };
     }
 
