@@ -4,19 +4,20 @@ using System.Runtime.InteropServices;
 namespace GukVoice.Services;
 
 // Polls the first (earliest-started) eqgame.exe process every 500ms.
-// Always takes the first instance so a second boxing EQ window is ignored.
+// Uses GetClientRect + ClientToScreen so the rect covers only the game
+// rendering area — no title bar, no window borders.
 public sealed class EqWindowTracker : IDisposable
 {
-    [DllImport("user32.dll")] private static extern bool GetWindowRect(IntPtr hwnd, out RECT rect);
+    [DllImport("user32.dll")] private static extern bool GetClientRect(IntPtr hwnd, out RECT rect);
+    [DllImport("user32.dll")] private static extern bool ClientToScreen(IntPtr hwnd, ref POINT pt);
     [DllImport("user32.dll")] private static extern bool IsWindow(IntPtr hwnd);
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RECT { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)] private struct RECT  { public int Left, Top, Right, Bottom; }
+    [StructLayout(LayoutKind.Sequential)] private struct POINT { public int X, Y; }
 
     private readonly System.Timers.Timer _timer;
-    private int    _eqPid  = 0;
-    private IntPtr _hwnd   = IntPtr.Zero;
-    private RECT   _lastRect;
+    private int    _eqPid = 0;
+    private IntPtr _hwnd  = IntPtr.Zero;
 
     public event Action<Rect>? RectChanged;
     public Rect CurrentRect { get; private set; }
@@ -59,18 +60,20 @@ public sealed class EqWindowTracker : IDisposable
         }
 
         if (_hwnd == IntPtr.Zero) return;
-        if (!GetWindowRect(_hwnd, out var r)) return;
 
-        if (r.Left == _lastRect.Left && r.Top    == _lastRect.Top &&
-            r.Right == _lastRect.Right && r.Bottom == _lastRect.Bottom)
-            return;
+        // Client rect gives only the inner game area (no title bar / borders)
+        if (!GetClientRect(_hwnd, out var client)) return;
+        var origin = new POINT { X = 0, Y = 0 };
+        if (!ClientToScreen(_hwnd, ref origin)) return;
 
-        _lastRect = r;
-        var wpf = new Rect(r.Left, r.Top,
-            Math.Max(1, r.Right  - r.Left),
-            Math.Max(1, r.Bottom - r.Top));
-        CurrentRect = wpf;
-        RectChanged?.Invoke(wpf);
+        var newRect = new Rect(
+            origin.X, origin.Y,
+            Math.Max(1, client.Right),
+            Math.Max(1, client.Bottom));
+
+        if (newRect == CurrentRect) return;
+        CurrentRect = newRect;
+        RectChanged?.Invoke(newRect);
     }
 
     public void Dispose() => _timer.Dispose();
