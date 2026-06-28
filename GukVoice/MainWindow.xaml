@@ -249,6 +249,11 @@
                                     BorderThickness="1" CornerRadius="4"
                                     Padding="14,10" Margin="0,0,0,14">
                                 <StackPanel>
+                                    <!-- EQ window size info (populated when EQ is running) -->
+                                    <TextBlock Text="{Binding EqWindowDiag}"
+                                               Foreground="{StaticResource SubtextBrush}"
+                                               FontSize="11" Margin="0,0,0,10"
+                                               FontFamily="Consolas"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,4">
                                         <TextBlock Text="X Offset" Width="58"
                                                    Foreground="{StaticResource SubtextBrush}" FontSize="11"

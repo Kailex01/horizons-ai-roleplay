@@ -63,7 +63,11 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
         _windowTracker.DiagReady   += OnEqDiagReady;
 
         _processMonitor.EqStarted += () => EqStarted?.Invoke();
-        _processMonitor.EqClosed  += () => EqClosed?.Invoke();
+        _processMonitor.EqClosed  += () =>
+        {
+            EqClosed?.Invoke();
+            Application.Current.Dispatcher.Invoke(() => EqWindowDiag = "EQ window: not detected");
+        };
 
         foreach (var sp in AppConfig.Current.Speakers)
             Speakers.Add(new SpeakerItem(sp));
@@ -209,23 +213,21 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     // ── EQ window diagnostics ─────────────────────────────────────────────────
 
+    private string _eqWindowDiag = "EQ window: not detected";
+    public string EqWindowDiag
+    {
+        get => _eqWindowDiag;
+        private set { _eqWindowDiag = value; OnPropertyChanged(); }
+    }
+
     private void OnEqDiagReady(string info)
     {
-        // Write to file next to the exe so the user can open it any time
-        try
-        {
-            var path = Path.Combine(AppContext.BaseDirectory, "eq-window-diag.txt");
-            File.WriteAllText(path, info + $"\n\nCaptured: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
-        }
-        catch { /* non-critical */ }
-
-        // Also flash a short summary in the status bar
-        var lines = info.Split('\n');
+        var lines  = info.Split('\n');
         var client = lines.FirstOrDefault(l => l.Contains("GetClientRect"))?.Split(':').LastOrDefault()?.Trim() ?? "?";
         var dwm    = lines.FirstOrDefault(l => l.Contains("DwmExt"))?.Split("size").LastOrDefault()?.Trim() ?? "?";
         var dpi    = lines.FirstOrDefault(l => l.Contains("GetDpi"))?.Split(':').LastOrDefault()?.Trim() ?? "?";
         Application.Current.Dispatcher.Invoke(() =>
-            StatusText = $"EQ detected — client:{client}  DWM:{dwm}  DPI:{dpi} — see eq-window-diag.txt");
+            EqWindowDiag = $"EQ window — client: {client}  ·  physical (DWM): {dwm}  ·  DPI: {dpi}");
     }
 
     // ── Log archive ───────────────────────────────────────────────────────────
