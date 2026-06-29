@@ -1,11 +1,5 @@
 namespace GukVoice.Models;
 
-public class TrackedMember
-{
-    [JsonPropertyName("name")]    public string Name    { get; set; } = "";
-    [JsonPropertyName("enabled")] public bool   Enabled { get; set; } = true;
-}
-
 public class FctSettings
 {
     [JsonPropertyName("enabled")]            public bool Enabled          { get; set; } = true;
@@ -25,9 +19,13 @@ public class FctSettings
     [JsonPropertyName("origin_y")]     public int  OriginOffsetY   { get; set; } = 0;
     [JsonPropertyName("debug_origin")] public bool ShowDebugOrigin { get; set; } = false;
 
-    // ── Group member tracking ─────────────────────────────────────────────────
-    [JsonPropertyName("group_members")]
-    public List<TrackedMember> GroupMembers { get; set; } = new();
+    // ── Group member perspective (mutually exclusive with self) ───────────────
+    // Names available as radio options; empty ActiveSubject = show self.
+    [JsonPropertyName("group_member_names")]
+    public List<string> GroupMemberNames { get; set; } = new();
+
+    [JsonPropertyName("active_subject")]
+    public string ActiveSubject { get; set; } = "";
 
     // ── Global text appearance ────────────────────────────────────────────────
     [JsonPropertyName("font_family")]  public string FontFamily   { get; set; } = "Segoe UI";

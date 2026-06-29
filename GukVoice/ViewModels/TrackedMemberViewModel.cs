@@ -1,27 +1,28 @@
-using GukVoice.Models;
-
 namespace GukVoice.ViewModels;
 
-public class TrackedMemberViewModel : INotifyPropertyChanged
+// Represents one radio-button option in the GROUP MEMBERS section.
+// IsActive is mutually exclusive — setting it true updates FctViewModel.ActiveSubject,
+// which then notifies all siblings to re-evaluate their own IsActive.
+public class GroupMemberRadioViewModel : INotifyPropertyChanged
 {
-    private readonly TrackedMember _model;
-    private readonly Action _save;
+    private readonly FctViewModel _parent;
 
-    public TrackedMemberViewModel(TrackedMember model, Action save)
+    public GroupMemberRadioViewModel(string name, FctViewModel parent)
     {
-        _model = model;
-        _save  = save;
+        Name    = name;
+        _parent = parent;
     }
 
-    public string Name => _model.Name;
+    public string Name { get; }
 
-    public bool Enabled
+    public bool IsActive
     {
-        get => _model.Enabled;
-        set { _model.Enabled = value; _save(); OnPropertyChanged(); }
+        get => _parent.ActiveSubject.Equals(Name, StringComparison.OrdinalIgnoreCase);
+        set { if (value) _parent.ActiveSubject = Name; }
     }
+
+    public void NotifyIsActive() =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsActive)));
 
     public event PropertyChangedEventHandler? PropertyChanged;
-    private void OnPropertyChanged([CallerMemberName] string? n = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
 }

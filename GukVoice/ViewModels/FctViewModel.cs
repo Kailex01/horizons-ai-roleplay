@@ -23,37 +23,56 @@ public class FctViewModel : INotifyPropertyChanged
 
     private FctSettings S => AppConfig.Current.Fct;
 
-    // ── Group member tracking ─────────────────────────────────────────────────
+    // ── Group member perspective (mutually exclusive radio selection) ─────────
 
-    public ObservableCollection<TrackedMemberViewModel> GroupMembers { get; } = new();
+    public ObservableCollection<GroupMemberRadioViewModel> GroupMemberOptions { get; } = new();
 
     public FctViewModel()
     {
-        foreach (var m in AppConfig.Current.Fct.GroupMembers)
-            GroupMembers.Add(new TrackedMemberViewModel(m, Save));
+        foreach (var name in AppConfig.Current.Fct.GroupMemberNames)
+            GroupMemberOptions.Add(new GroupMemberRadioViewModel(name, this));
+    }
+
+    // "" = show self; non-empty = show that character's events.
+    public string ActiveSubject
+    {
+        get => S.ActiveSubject;
+        set
+        {
+            S.ActiveSubject = value;
+            Save();
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSelf));
+            foreach (var opt in GroupMemberOptions) opt.NotifyIsActive();
+        }
+    }
+
+    public bool IsSelf
+    {
+        get => string.IsNullOrEmpty(S.ActiveSubject);
+        set { if (value) ActiveSubject = ""; }
     }
 
     public void AddGroupMember(string name)
     {
         name = name.Trim();
         if (string.IsNullOrEmpty(name)) return;
-        if (S.GroupMembers.Any(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) return;
-        var model = new TrackedMember { Name = name, Enabled = true };
-        S.GroupMembers.Add(model);
-        GroupMembers.Add(new TrackedMemberViewModel(model, Save));
+        if (S.GroupMemberNames.Any(n => n.Equals(name, StringComparison.OrdinalIgnoreCase))) return;
+        S.GroupMemberNames.Add(name);
+        GroupMemberOptions.Add(new GroupMemberRadioViewModel(name, this));
         Save();
     }
 
     public void RemoveGroupMember(string name)
     {
-        S.GroupMembers.RemoveAll(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        var vm = GroupMembers.FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        if (vm != null) GroupMembers.Remove(vm);
+        S.GroupMemberNames.RemoveAll(n => n.Equals(name, StringComparison.OrdinalIgnoreCase));
+        var vm = GroupMemberOptions.FirstOrDefault(o => o.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (vm != null) GroupMemberOptions.Remove(vm);
+        // If the removed member was active, fall back to self
+        if (S.ActiveSubject.Equals(name, StringComparison.OrdinalIgnoreCase))
+            ActiveSubject = "";
         Save();
     }
-
-    public HashSet<string> GetEnabledGroupMemberNames() =>
-        S.GroupMembers.Where(m => m.Enabled).Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     // ── Master toggle ─────────────────────────────────────────────────────────
 

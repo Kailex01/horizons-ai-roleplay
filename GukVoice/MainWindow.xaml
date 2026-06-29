@@ -328,43 +328,49 @@
                                     BorderThickness="1" CornerRadius="4"
                                     Padding="14,10" Margin="0,0,0,14">
                                 <StackPanel>
-                                    <TextBlock Text="Show FCT for these characters (their spell / non-melee hits)"
+                                    <TextBlock Text="Select whose FCT events to display — one at a time"
                                                Foreground="{StaticResource SubtextBrush}" FontSize="11"
                                                Margin="0,0,0,10"/>
-                                    <!-- Member toggle list -->
-                                    <ItemsControl ItemsSource="{Binding Fct.GroupMembers}">
+                                    <!-- Self (default) -->
+                                    <RadioButton GroupName="FCTSubject"
+                                                 IsChecked="{Binding Fct.IsSelf}"
+                                                 Foreground="{StaticResource TextBrush}"
+                                                 FontSize="13" Margin="0,3">
+                                        <TextBlock Text="Self (your events)" Foreground="{StaticResource TextBrush}"/>
+                                    </RadioButton>
+                                    <!-- One radio per configured group member -->
+                                    <ItemsControl ItemsSource="{Binding Fct.GroupMemberOptions}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal" Margin="0,3">
-                                                    <CheckBox IsChecked="{Binding Enabled}"
-                                                              VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <RadioButton GroupName="FCTSubject"
+                                                                 IsChecked="{Binding IsActive}"
+                                                                 VerticalAlignment="Center"
+                                                                 Margin="0,0,6,0"/>
                                                     <TextBlock Text="{Binding Name}"
                                                                Foreground="{StaticResource TextBrush}"
-                                                               FontSize="13" Width="160"
+                                                               FontSize="13" Width="150"
                                                                VerticalAlignment="Center"/>
                                                     <Button Content="×" FontSize="14" FontWeight="Bold"
                                                             Tag="{Binding Name}"
                                                             Click="OnRemoveGroupMember"
-                                                            Background="Transparent"
-                                                            BorderThickness="0"
+                                                            Background="Transparent" BorderThickness="0"
                                                             Foreground="{StaticResource SubtextBrush}"
                                                             Cursor="Hand" Padding="4,0"
-                                                            VerticalAlignment="Center"
-                                                            ToolTip="Remove"/>
+                                                            VerticalAlignment="Center" ToolTip="Remove"/>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
-                                    <!-- Add member row -->
-                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <!-- Add member -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                                         <TextBox x:Name="NewMemberNameBox"
                                                  Width="160" FontSize="12" Padding="4,3"
                                                  Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
                                                  BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                                                 ToolTip="Character name to track"/>
+                                                 ToolTip="Character name to add as an option"/>
                                         <Button Content="Add" Margin="8,0,0,0" Padding="10,3"
-                                                Click="OnAddGroupMember"
-                                                FontSize="12"/>
+                                                Click="OnAddGroupMember" FontSize="12"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>

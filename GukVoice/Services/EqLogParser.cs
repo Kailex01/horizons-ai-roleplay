@@ -56,9 +56,28 @@ public static class EqLogParser
 
     // Combat — third-person non-melee: "ActorName hit TargetName for N points of non-melee damage."
     // Some EQEmu servers emit this format for everyone (including the player) instead of "You hit".
-    // Routed to SpellOut / SpellIn based on whether actor or target matches the player name.
     private static readonly Regex RxNonMeleeThirdPerson = new(
         @"^(.+?) hit (.+?) for (\d+) points? of non-melee damage\.$",
+        RegexOptions.Compiled);
+
+    // Third-person melee: "Sheian slashes X for N points of damage."
+    private static readonly Regex RxMeleeThirdPerson = new(
+        @"^(.+?) (?:slashes|pierces|crushes|kicks|punches|bites|bashes|backstabs|strikes|claws|mauls|gores|rends|frenzies on|hits) (.+?) for (\d+) points? of damage\.$",
+        RegexOptions.Compiled);
+
+    // Third-person heals: "Sheian healed X for N" / "X healed Sheian for N"
+    private static readonly Regex RxHealThirdPerson = new(
+        @"^(.+?) healed (.+?) for (\d+)",
+        RegexOptions.Compiled);
+
+    // Third-person passive heal: "Sheian has been healed for N"
+    private static readonly Regex RxHealPassiveThirdPerson = new(
+        @"^(.+?) has been healed for (\d+)",
+        RegexOptions.Compiled);
+
+    // Third-person crits dealt: "Sheian scores a critical hit!(N)"
+    private static readonly Regex RxCritThirdPerson = new(
+        @"^(.+?) (?:scores? a critical hit|lands? a Crippling Blow|performs? a Deadly Strike|delivers? a critical blast)[!.]?\s*\((\d+)\)$",
         RegexOptions.Compiled);
 
     // ── Combat — crits (separate log lines that follow the hit) ───────────────
@@ -121,7 +140,7 @@ public static class EqLogParser
     public record ParseResult(LogEvent? LogEvent, CombatEvent? CombatEvent);
 
     public static ParseResult Parse(string rawLine, string playerName,
-                                     HashSet<string>? groupMembers = null)
+                                     string activeSubject = "")
     {
         var m = RxLine.Match(rawLine);
         if (!m.Success) return new(null, null);
@@ -129,9 +148,7 @@ public static class EqLogParser
         var time = ParseTimestamp(m.Groups[1].Value);
         var body = m.Groups[2].Value;
 
-        // Run both parsers — some lines (exp, level-up) may return both so the
-        // activity feed and FCT overlay both get notified.
-        var combat   = TryCombat(body, time, playerName, groupMembers);
+        var combat   = TryCombat(body, time, playerName, activeSubject);
         var logEvent = TryLogEvent(body, time, playerName);
         return new(logEvent, combat);
     }
@@ -171,8 +188,20 @@ public static class EqLogParser
 
     // ── Combat parsing ─────────────────────────────────────────────────────────
 
-    private static CombatEvent? TryCombat(string body, DateTime time, string playerName,
-                                            HashSet<string>? groupMembers = null)
+    private static CombatEvent? TryCombat(string body, DateTime time,
+                                            string playerName, string activeSubject)
+    {
+        // When a group member is the active subject, parse from their perspective.
+        bool subjectMode = !string.IsNullOrEmpty(activeSubject) &&
+                           !activeSubject.Equals(playerName, StringComparison.OrdinalIgnoreCase);
+        return subjectMode
+            ? TryCombatForSubject(body, time, activeSubject)
+            : TryCombatForPlayer(body, time, playerName);
+    }
+
+    // ── Player-centric parsing (default) ─────────────────────────────────────
+
+    private static CombatEvent? TryCombatForPlayer(string body, DateTime time, string playerName)
     {
         Match m;
 
@@ -188,7 +217,7 @@ public static class EqLogParser
         if (RxExp.IsMatch(body))
             return new CombatEvent { Type = CombatEventType.ExperienceGain, Time = time };
 
-        // ── Player death (check before RxSlainBy to avoid "You" false match) ──
+        // ── Player death ───────────────────────────────────────────────────────
         m = RxPlayerDied.Match(body);
         if (m.Success)
             return new CombatEvent { Type = CombatEventType.PlayerDeath, Time = time,
@@ -205,7 +234,7 @@ public static class EqLogParser
             return new CombatEvent { Type = CombatEventType.MobDeath, Time = time,
                                      Target = m.Groups[1].Value, Actor = m.Groups[2].Value };
 
-        // ── Crits (check before regular hits — crits are separate log lines) ──
+        // ── Crits ─────────────────────────────────────────────────────────────
         m = RxCritDealt.Match(body);
         if (m.Success && int.TryParse(m.Groups[1].Value, out int cd))
             return new CombatEvent { Type = CombatEventType.CritDealt, Time = time,
@@ -221,7 +250,7 @@ public static class EqLogParser
             return new CombatEvent { Type = CombatEventType.CritTaken, Time = time,
                                      Actor = m.Groups[1].Value, Damage = ct };
 
-        // ── Regular damage dealt ───────────────────────────────────────────────
+        // ── Damage dealt ──────────────────────────────────────────────────────
         m = RxDmgDealtMelee.Match(body);
         if (m.Success && int.TryParse(m.Groups[2].Value, out int dmg))
             return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
@@ -232,7 +261,7 @@ public static class EqLogParser
             return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
                                      Target = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Spell };
 
-        // ── Regular damage taken ───────────────────────────────────────────────
+        // ── Damage taken ──────────────────────────────────────────────────────
         m = RxDmgTakenMelee.Match(body);
         if (m.Success && int.TryParse(m.Groups[2].Value, out dmg))
             return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
@@ -243,8 +272,7 @@ public static class EqLogParser
             return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
                                      Actor = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Spell };
 
-        // Third-person non-melee ("Jarvill hit Mob for N" / "Mob hit Jarvill for N")
-        // Only runs when a player name is known; ignores other-player-vs-mob lines.
+        // Third-person non-melee (EQEmu servers use "PlayerName hit X" instead of "You hit")
         if (!string.IsNullOrEmpty(playerName))
         {
             m = RxNonMeleeThirdPerson.Match(body);
@@ -258,11 +286,6 @@ public static class EqLogParser
                 if (target == playerName)
                     return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
                                              Actor = actor, Damage = dmg, Source = DamageSource.Spell };
-                // Enabled group member hitting a mob → show as SpellOut
-                if (groupMembers != null && groupMembers.Contains(actor) && target != playerName)
-                    return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
-                                             Actor = actor, Target = target, Damage = dmg,
-                                             Source = DamageSource.Spell };
             }
         }
 
@@ -281,12 +304,85 @@ public static class EqLogParser
             return new CombatEvent { Type = CombatEventType.HealTaken, Time = time,
                                      Actor = m.Groups[1].Value, Damage = heal };
 
-        // "X has been healed" — enemy heal (only reaches here because "You have been healed"
-        // matched RxHealTakenPassive above)
         m = RxHealEnemy.Match(body);
         if (m.Success && int.TryParse(m.Groups[2].Value, out heal))
             return new CombatEvent { Type = CombatEventType.HealEnemy, Time = time,
                                      Target = m.Groups[1].Value, Damage = heal };
+
+        return null;
+    }
+
+    // ── Subject-centric parsing (group member perspective) ────────────────────
+
+    private static readonly StringComparison OIC = StringComparison.OrdinalIgnoreCase;
+
+    private static CombatEvent? TryCombatForSubject(string body, DateTime time, string subject)
+    {
+        Match m;
+
+        // ── Melee: "Sheian slashes X for N" / "X slashes Sheian for N" ────────
+        m = RxMeleeThirdPerson.Match(body);
+        if (m.Success && int.TryParse(m.Groups[3].Value, out int dmg))
+        {
+            if (m.Groups[1].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
+                                         Target = m.Groups[2].Value, Damage = dmg, Source = DamageSource.Melee };
+            if (m.Groups[2].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
+                                         Actor = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Melee };
+        }
+
+        // ── Non-melee: "Sheian hit X for N" / "X hit Sheian for N" ───────────
+        m = RxNonMeleeThirdPerson.Match(body);
+        if (m.Success && int.TryParse(m.Groups[3].Value, out dmg))
+        {
+            if (m.Groups[1].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
+                                         Target = m.Groups[2].Value, Damage = dmg, Source = DamageSource.Spell };
+            if (m.Groups[2].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
+                                         Actor = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Spell };
+        }
+
+        // ── Crits: "Sheian scores a critical hit!(N)" ─────────────────────────
+        m = RxCritThirdPerson.Match(body);
+        if (m.Success && int.TryParse(m.Groups[2].Value, out int crit))
+        {
+            if (m.Groups[1].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.CritDealt, Time = time,
+                                         Damage = crit, Source = DamageSource.Melee };
+            // Unknown if the crit landed ON the subject — skip
+        }
+
+        // ── Heals active: "Sheian healed X for N" / "X healed Sheian for N" ──
+        m = RxHealThirdPerson.Match(body);
+        if (m.Success && int.TryParse(m.Groups[3].Value, out int heal))
+        {
+            if (m.Groups[1].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.HealDealt, Time = time,
+                                         Target = m.Groups[2].Value, Damage = heal };
+            if (m.Groups[2].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.HealTaken, Time = time,
+                                         Actor = m.Groups[1].Value, Damage = heal };
+        }
+
+        // ── Heals passive: "Sheian has been healed for N" ─────────────────────
+        m = RxHealPassiveThirdPerson.Match(body);
+        if (m.Success && m.Groups[1].Value.Equals(subject, OIC) &&
+            int.TryParse(m.Groups[2].Value, out heal))
+            return new CombatEvent { Type = CombatEventType.HealTaken, Time = time, Damage = heal };
+
+        // ── Death: "X has been slain by Sheian" / "Sheian has been slain by X" ─
+        m = RxSlainBy.Match(body);
+        if (m.Success)
+        {
+            if (m.Groups[2].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.MobDeath, Time = time,
+                                         Target = m.Groups[1].Value, Actor = subject };
+            if (m.Groups[1].Value.Equals(subject, OIC))
+                return new CombatEvent { Type = CombatEventType.PlayerDeath, Time = time,
+                                         Actor = m.Groups[2].Value };
+        }
 
         return null;
     }
