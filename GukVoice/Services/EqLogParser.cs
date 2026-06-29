@@ -25,7 +25,8 @@ public static class EqLogParser
         @"^You have entered (.+)\.$", RegexOptions.Compiled);
 
     private static readonly Regex RxExp = new(
-        @"^You gained (?:party |raid )?experience", RegexOptions.Compiled);
+        @"^You (?:have )?gained (?:\(\d+\) )?(?:party |raid )?experience",
+        RegexOptions.Compiled);
 
     private static readonly Regex RxLoot = new(
         @"^--(.+?) has looted (.+?) from .+", RegexOptions.Compiled);
