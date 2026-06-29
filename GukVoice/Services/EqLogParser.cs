@@ -38,7 +38,7 @@ public static class EqLogParser
         @"^You (?:slash|pierce|crush|kick|punch|bite|bash|backstab|strike|claw|maul|gore|rend|frenzy on) (.+?) for (\d+) points? of damage\.$",
         RegexOptions.Compiled);
 
-    // Combat — spell / non-melee damage dealt
+    // Combat — spell / non-melee damage dealt (standard EQ: "You hit")
     private static readonly Regex RxDmgDealtSpell = new(
         @"^You hit (.+?) for (\d+) points? of non-melee damage\.$",
         RegexOptions.Compiled);
@@ -48,9 +48,16 @@ public static class EqLogParser
         @"^(.+?) (?:slash|pierce|crush|kick|punch|bite|bash|backstab|hit|strike|claw|maul|gore|rend)s? YOU for (\d+) points? of damage\.$",
         RegexOptions.Compiled);
 
-    // Combat — spell damage taken
+    // Combat — spell damage taken (standard EQ: "X hit you")
     private static readonly Regex RxDmgTakenSpell = new(
         @"^(.+?) hit you for (\d+) points? of non-melee damage\.$",
+        RegexOptions.Compiled);
+
+    // Combat — third-person non-melee: "ActorName hit TargetName for N points of non-melee damage."
+    // Some EQEmu servers emit this format for everyone (including the player) instead of "You hit".
+    // Routed to SpellOut / SpellIn based on whether actor or target matches the player name.
+    private static readonly Regex RxNonMeleeThirdPerson = new(
+        @"^(.+?) hit (.+?) for (\d+) points? of non-melee damage\.$",
         RegexOptions.Compiled);
 
     // ── Combat — crits (separate log lines that follow the hit) ───────────────
@@ -122,7 +129,7 @@ public static class EqLogParser
 
         // Run both parsers — some lines (exp, level-up) may return both so the
         // activity feed and FCT overlay both get notified.
-        var combat   = TryCombat(body, time);
+        var combat   = TryCombat(body, time, playerName);
         var logEvent = TryLogEvent(body, time, playerName);
         return new(logEvent, combat);
     }
@@ -162,7 +169,7 @@ public static class EqLogParser
 
     // ── Combat parsing ─────────────────────────────────────────────────────────
 
-    private static CombatEvent? TryCombat(string body, DateTime time)
+    private static CombatEvent? TryCombat(string body, DateTime time, string playerName)
     {
         Match m;
 
@@ -232,6 +239,24 @@ public static class EqLogParser
         if (m.Success && int.TryParse(m.Groups[2].Value, out dmg))
             return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
                                      Actor = m.Groups[1].Value, Damage = dmg, Source = DamageSource.Spell };
+
+        // Third-person non-melee ("Jarvill hit Mob for N" / "Mob hit Jarvill for N")
+        // Only runs when a player name is known; ignores other-player-vs-mob lines.
+        if (!string.IsNullOrEmpty(playerName))
+        {
+            m = RxNonMeleeThirdPerson.Match(body);
+            if (m.Success && int.TryParse(m.Groups[3].Value, out dmg))
+            {
+                var actor  = m.Groups[1].Value;
+                var target = m.Groups[2].Value;
+                if (actor == playerName && target != playerName)
+                    return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
+                                             Target = target, Damage = dmg, Source = DamageSource.Spell };
+                if (target == playerName)
+                    return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
+                                             Actor = actor, Damage = dmg, Source = DamageSource.Spell };
+            }
+        }
 
         // ── Heals ─────────────────────────────────────────────────────────────
         m = RxHealDealt.Match(body);
