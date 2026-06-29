@@ -128,6 +128,10 @@ public static class EqLogParser
     private static readonly Regex RxPlayerDied = new(
         @"^You have been slain by (.+?)!$", RegexOptions.Compiled);
 
+    // ── Stunned ───────────────────────────────────────────────────────────────
+    private static readonly Regex RxStunned = new(
+        @"^You are stunned[!.]?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     // ── Level up ──────────────────────────────────────────────────────────────
     // "You have gained a level! Welcome to level 55!"
     // "Congratulations! You have reached level 55!"
@@ -204,6 +208,10 @@ public static class EqLogParser
     private static CombatEvent? TryCombatForPlayer(string body, DateTime time, string playerName)
     {
         Match m;
+
+        // ── Stunned ────────────────────────────────────────────────────────────
+        if (RxStunned.IsMatch(body))
+            return new CombatEvent { Type = CombatEventType.Stunned, Time = time };
 
         // ── Level up ───────────────────────────────────────────────────────────
         m = RxLevelUp.Match(body);

@@ -234,7 +234,8 @@ public partial class FloatingCombatOverlay : Window
             FctCategory.HealFriendly => new(ParseColor(fs.ColorHealFriendly), ParseColor(fs.StrokeHealFriendly), fs.FontSizeHealFriendly, fs.FontSizeHealFriendly * 1.28, FontWeights.Normal, 2.2,  15),
             FctCategory.HealEnemy    => new(ParseColor(fs.ColorHealEnemy),    ParseColor(fs.StrokeHealEnemy),    fs.FontSizeHealEnemy,    fs.FontSizeHealEnemy    * 1.25, FontWeights.Normal, 2.2, 345),
             FctCategory.LevelUp      => new(ParseColor(fs.ColorLevelUp),      ParseColor(fs.StrokeLevelUp),      fs.FontSizeLevelUp,      fs.FontSizeLevelUp      * 1.47, FontWeights.Bold,   4.5,   0, Parabolic: true),
-            FctCategory.ExpGain      => new(ParseColor(fs.ColorExpGain),      ParseColor(fs.StrokeExpGain),      fs.FontSizeExpGain,      fs.FontSizeExpGain      * 1.23, FontWeights.Normal, 2.0,   0, Parabolic: true),
+            FctCategory.ExpGain      => new(ParseColor(fs.ColorExpGain),      ParseColor(fs.StrokeExpGain),      fs.FontSizeExpGain,      fs.FontSizeExpGain      * 1.23, FontWeights.Normal,    2.0,   0, Parabolic: true),
+            FctCategory.Stunned      => new(ParseColor(fs.ColorStunned),      ParseColor(fs.StrokeStunned),      fs.FontSizeStunned,      fs.FontSizeStunned      * 1.35, FontWeights.ExtraBold, 2.5,   0, Parabolic: true),
             _                        => new(Colors.White,                      Colors.Black,                      16,                      20,                             FontWeights.Normal, 2.2,   0),
         };
     }

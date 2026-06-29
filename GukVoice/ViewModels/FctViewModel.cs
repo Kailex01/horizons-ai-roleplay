@@ -11,6 +11,7 @@ public enum FctCategory
     SpellOut,  SpellIn,
     HealFriendly, HealEnemy,
     LevelUp,   ExpGain,
+    Stunned,
 }
 
 public record FctSpawnArgs(FctCategory Category, string Text);
@@ -134,6 +135,11 @@ public class FctViewModel : INotifyPropertyChanged
         get => S.ShowExpGain;
         set { S.ShowExpGain = value; Save(); OnPropertyChanged(); }
     }
+    public bool ShowStunned
+    {
+        get => S.ShowStunned;
+        set { S.ShowStunned = value; Save(); OnPropertyChanged(); }
+    }
 
     // ── Origin / debug ────────────────────────────────────────────────────────
 
@@ -234,6 +240,11 @@ public class FctViewModel : INotifyPropertyChanged
         get => S.FontSizeExpGain;
         set { S.FontSizeExpGain = value; Save(); OnPropertyChanged(); }
     }
+    public double FontSizeStunned
+    {
+        get => S.FontSizeStunned;
+        set { S.FontSizeStunned = value; Save(); OnPropertyChanged(); }
+    }
 
     // ── Event routing ──────────────────────────────────────────────────────────
 
@@ -273,6 +284,9 @@ public class FctViewModel : INotifyPropertyChanged
             CombatEventType.ExperienceGain
                 => (FctCategory.ExpGain, string.IsNullOrEmpty(ev.Label) ? "exp" : $"{ev.Label}% exp!"),
 
+            CombatEventType.Stunned
+                => (FctCategory.Stunned, "STUNNED"),
+
             _ => (default, null),
         };
 
@@ -295,6 +309,7 @@ public class FctViewModel : INotifyPropertyChanged
     public SolidColorBrush BrushHealEnemy    => MakeBrush(S.ColorHealEnemy);
     public SolidColorBrush BrushLevelUp      => MakeBrush(S.ColorLevelUp);
     public SolidColorBrush BrushExpGain      => MakeBrush(S.ColorExpGain);
+    public SolidColorBrush BrushStunned      => MakeBrush(S.ColorStunned);
 
     // ── Stroke color brushes ──────────────────────────────────────────────────
     public SolidColorBrush StrokeBrushDamageOut    => MakeBrush(S.StrokeDamageOut);
@@ -307,6 +322,7 @@ public class FctViewModel : INotifyPropertyChanged
     public SolidColorBrush StrokeBrushHealEnemy    => MakeBrush(S.StrokeHealEnemy);
     public SolidColorBrush StrokeBrushLevelUp      => MakeBrush(S.StrokeLevelUp);
     public SolidColorBrush StrokeBrushExpGain      => MakeBrush(S.StrokeExpGain);
+    public SolidColorBrush StrokeBrushStunned      => MakeBrush(S.StrokeStunned);
 
     public string GetColorHex(FctCategory cat) => cat switch
     {
@@ -320,6 +336,7 @@ public class FctViewModel : INotifyPropertyChanged
         FctCategory.HealEnemy    => S.ColorHealEnemy,
         FctCategory.LevelUp      => S.ColorLevelUp,
         FctCategory.ExpGain      => S.ColorExpGain,
+        FctCategory.Stunned      => S.ColorStunned,
         _                        => "#FFFFFF",
     };
 
@@ -335,6 +352,7 @@ public class FctViewModel : INotifyPropertyChanged
         FctCategory.HealEnemy    => S.StrokeHealEnemy,
         FctCategory.LevelUp      => S.StrokeLevelUp,
         FctCategory.ExpGain      => S.StrokeExpGain,
+        FctCategory.Stunned      => S.StrokeStunned,
         _                        => "#000000",
     };
 
@@ -352,6 +370,7 @@ public class FctViewModel : INotifyPropertyChanged
             case FctCategory.HealEnemy:    S.ColorHealEnemy    = hex; OnPropertyChanged(nameof(BrushHealEnemy));    break;
             case FctCategory.LevelUp:      S.ColorLevelUp      = hex; OnPropertyChanged(nameof(BrushLevelUp));      break;
             case FctCategory.ExpGain:      S.ColorExpGain      = hex; OnPropertyChanged(nameof(BrushExpGain));      break;
+            case FctCategory.Stunned:      S.ColorStunned      = hex; OnPropertyChanged(nameof(BrushStunned));      break;
         }
         Save();
     }
@@ -370,6 +389,7 @@ public class FctViewModel : INotifyPropertyChanged
             case FctCategory.HealEnemy:    S.StrokeHealEnemy    = hex; OnPropertyChanged(nameof(StrokeBrushHealEnemy));    break;
             case FctCategory.LevelUp:      S.StrokeLevelUp      = hex; OnPropertyChanged(nameof(StrokeBrushLevelUp));      break;
             case FctCategory.ExpGain:      S.StrokeExpGain      = hex; OnPropertyChanged(nameof(StrokeBrushExpGain));      break;
+            case FctCategory.Stunned:      S.StrokeStunned      = hex; OnPropertyChanged(nameof(StrokeBrushStunned));      break;
         }
         Save();
     }
@@ -392,6 +412,7 @@ public class FctViewModel : INotifyPropertyChanged
         FctCategory.HealEnemy    => S.ShowHealEnemy,
         FctCategory.LevelUp      => S.ShowLevelUp,
         FctCategory.ExpGain      => S.ShowExpGain,
+        FctCategory.Stunned      => S.ShowStunned,
         _                        => false,
     };
 

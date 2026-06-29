@@ -13,6 +13,7 @@ public enum CombatEventType
     PlayerDeath,
     LevelUp,
     ExperienceGain,
+    Stunned,
 }
 
 public enum DamageSource { Melee, Spell }
