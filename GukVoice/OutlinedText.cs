@@ -23,7 +23,8 @@ public sealed class OutlinedText : FrameworkElement
         DependencyProperty.Register(nameof(FontWeight), typeof(FontWeight), typeof(OutlinedText),
             new FrameworkPropertyMetadata(FontWeights.Normal,
                 FrameworkPropertyMetadataOptions.AffectsRender |
-                FrameworkPropertyMetadataOptions.AffectsMeasure));
+                FrameworkPropertyMetadataOptions.AffectsMeasure,
+                OnTypefacePropertyChanged));
 
     public static readonly DependencyProperty ForegroundProperty =
         DependencyProperty.Register(nameof(Foreground), typeof(Brush), typeof(OutlinedText),
@@ -44,7 +45,8 @@ public sealed class OutlinedText : FrameworkElement
         DependencyProperty.Register(nameof(FontStyle), typeof(FontStyle), typeof(OutlinedText),
             new FrameworkPropertyMetadata(FontStyles.Normal,
                 FrameworkPropertyMetadataOptions.AffectsRender |
-                FrameworkPropertyMetadataOptions.AffectsMeasure));
+                FrameworkPropertyMetadataOptions.AffectsMeasure,
+                OnTypefacePropertyChanged));
 
     public string     Text            { get => (string)GetValue(TextProperty);            set => SetValue(TextProperty, value); }
     public double     FontSize        { get => (double)GetValue(FontSizeProperty);         set => SetValue(FontSizeProperty, value); }
@@ -54,24 +56,29 @@ public sealed class OutlinedText : FrameworkElement
     public Brush      StrokeBrush     { get => (Brush)GetValue(StrokeBrushProperty);       set => SetValue(StrokeBrushProperty, value); }
     public double     StrokeThickness { get => (double)GetValue(StrokeThicknessProperty); set => SetValue(StrokeThicknessProperty, value); }
 
-    private string _fontFamilyName = "Segoe UI";
+    private string   _fontFamilyName = "Segoe UI";
+    private Typeface? _cachedTypeface;
+
     public string FontFamilyName
     {
         get => _fontFamilyName;
-        set { _fontFamilyName = value; InvalidateMeasure(); InvalidateVisual(); }
+        set { _fontFamilyName = value; _cachedTypeface = null; InvalidateMeasure(); InvalidateVisual(); }
     }
+
+    // FontWeight / FontStyle changes also bust the typeface cache
+    private static void OnTypefacePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs _)
+        => ((OutlinedText)d)._cachedTypeface = null;
 
     private FormattedText MakeFormattedText()
     {
-        var src      = PresentationSource.FromVisual(this);
-        double ppd   = src?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
-        var family   = new FontFamily(_fontFamilyName);
-        var typeface = new Typeface(family, FontStyle, FontWeight, FontStretches.Normal);
+        var src    = PresentationSource.FromVisual(this);
+        double ppd = src?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
+        _cachedTypeface ??= new Typeface(new FontFamily(_fontFamilyName), FontStyle, FontWeight, FontStretches.Normal);
         return new FormattedText(
             Text ?? "",
             CultureInfo.InvariantCulture,
             FlowDirection.LeftToRight,
-            typeface,
+            _cachedTypeface,
             FontSize,
             Foreground,
             ppd);
