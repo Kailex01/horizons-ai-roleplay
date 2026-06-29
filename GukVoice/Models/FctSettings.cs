@@ -14,6 +14,7 @@ public class FctSettings
     [JsonPropertyName("show_level_up")]      public bool ShowLevelUp      { get; set; } = true;
     [JsonPropertyName("show_exp_gain")]      public bool ShowExpGain      { get; set; } = false;
     [JsonPropertyName("show_stunned")]       public bool ShowStunned      { get; set; } = true;
+    [JsonPropertyName("show_feared")]        public bool ShowFeared       { get; set; } = true;
 
     // ── Origin offset (pixels from window center; positive = right / down) ────
     [JsonPropertyName("origin_x")]     public int  OriginOffsetX   { get; set; } = 0;
@@ -46,6 +47,7 @@ public class FctSettings
     [JsonPropertyName("fs_level_up")]      public double FontSizeLevelUp      { get; set; } = 30;
     [JsonPropertyName("fs_exp_gain")]      public double FontSizeExpGain      { get; set; } = 13;
     [JsonPropertyName("fs_stunned")]       public double FontSizeStunned      { get; set; } = 22;
+    [JsonPropertyName("fs_feared")]        public double FontSizeFeared       { get; set; } = 22;
 
     // ── Per-category fill colors (#RRGGBB) ───────────────────────────────────
     [JsonPropertyName("clr_damage_out")]    public string ColorDamageOut    { get; set; } = "#FFFFFF";
@@ -59,6 +61,7 @@ public class FctSettings
     [JsonPropertyName("clr_level_up")]      public string ColorLevelUp      { get; set; } = "#FFD700";
     [JsonPropertyName("clr_exp_gain")]      public string ColorExpGain      { get; set; } = "#FFF59D";
     [JsonPropertyName("clr_stunned")]       public string ColorStunned      { get; set; } = "#FF6600";
+    [JsonPropertyName("clr_feared")]        public string ColorFeared       { get; set; } = "#9B59B6";
 
     // ── Per-category stroke (outline) colors (#RRGGBB) ───────────────────────
     [JsonPropertyName("stk_damage_out")]    public string StrokeDamageOut    { get; set; } = "#000000";
@@ -72,4 +75,5 @@ public class FctSettings
     [JsonPropertyName("stk_level_up")]      public string StrokeLevelUp      { get; set; } = "#000000";
     [JsonPropertyName("stk_exp_gain")]      public string StrokeExpGain      { get; set; } = "#000000";
     [JsonPropertyName("stk_stunned")]       public string StrokeStunned      { get; set; } = "#000000";
+    [JsonPropertyName("stk_feared")]        public string StrokeFeared       { get; set; } = "#000000";
 }

@@ -132,6 +132,10 @@ public static class EqLogParser
     private static readonly Regex RxStunned = new(
         @"^You are stunned[!.]?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+    // ── Feared ────────────────────────────────────────────────────────────────
+    private static readonly Regex RxFeared = new(
+        @"^Your mind fills with fear[!.]?$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     // ── Level up ──────────────────────────────────────────────────────────────
     // "You have gained a level! Welcome to level 55!"
     // "Congratulations! You have reached level 55!"
@@ -212,6 +216,10 @@ public static class EqLogParser
         // ── Stunned ────────────────────────────────────────────────────────────
         if (RxStunned.IsMatch(body))
             return new CombatEvent { Type = CombatEventType.Stunned, Time = time };
+
+        // ── Feared ─────────────────────────────────────────────────────────────
+        if (RxFeared.IsMatch(body))
+            return new CombatEvent { Type = CombatEventType.Feared, Time = time };
 
         // ── Level up ───────────────────────────────────────────────────────────
         m = RxLevelUp.Match(body);

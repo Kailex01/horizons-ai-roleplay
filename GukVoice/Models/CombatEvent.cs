@@ -14,6 +14,7 @@ public enum CombatEventType
     LevelUp,
     ExperienceGain,
     Stunned,
+    Feared,
 }
 
 public enum DamageSource { Melee, Spell }

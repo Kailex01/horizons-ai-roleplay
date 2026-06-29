@@ -155,7 +155,16 @@ public partial class FloatingCombatOverlay : Window
             // Fall target: halfway between the peak and the canvas bottom (half fall speed)
             double yCanvasBottom = OverlayCanvas.ActualHeight + textH;
 
-            if (style.Parabolic)
+            if (style.FloatUp)
+            {
+                // Slow linear drift straight upward — no arc, no fall
+                var yAnim = new DoubleAnimation(startY, startY - 120, dur)
+                    { EasingFunction = new SineEase { EasingMode = EasingMode.EaseInOut } };
+                Storyboard.SetTarget(yAnim, ot);
+                Storyboard.SetTargetProperty(yAnim, new PropertyPath(Canvas.TopProperty));
+                sb.Children.Add(yAnim);
+            }
+            else if (style.Parabolic)
             {
                 double yParabolicPeak = startY - 90;
                 double yParabolicFall = yParabolicPeak + (yCanvasBottom - yParabolicPeak) / 2.0;
@@ -218,7 +227,8 @@ public partial class FloatingCombatOverlay : Window
 
     private record StyleDef(
         Color Color, Color StrokeColor, double StartSize, double EndSize,
-        FontWeight Weight, double Duration, double AngleDeg, bool Parabolic = false);
+        FontWeight Weight, double Duration, double AngleDeg,
+        bool Parabolic = false, bool FloatUp = false);
 
     private static StyleDef GetStyle(FctCategory cat)
     {
@@ -236,6 +246,7 @@ public partial class FloatingCombatOverlay : Window
             FctCategory.LevelUp      => new(ParseColor(fs.ColorLevelUp),      ParseColor(fs.StrokeLevelUp),      fs.FontSizeLevelUp,      fs.FontSizeLevelUp      * 1.47, FontWeights.Bold,   4.5,   0, Parabolic: true),
             FctCategory.ExpGain      => new(ParseColor(fs.ColorExpGain),      ParseColor(fs.StrokeExpGain),      fs.FontSizeExpGain,      fs.FontSizeExpGain      * 1.23, FontWeights.Normal,    2.0,   0, Parabolic: true),
             FctCategory.Stunned      => new(ParseColor(fs.ColorStunned),      ParseColor(fs.StrokeStunned),      fs.FontSizeStunned,      fs.FontSizeStunned      * 1.35, FontWeights.ExtraBold, 2.5,   0, Parabolic: true),
+            FctCategory.Feared       => new(ParseColor(fs.ColorFeared),       ParseColor(fs.StrokeFeared),       fs.FontSizeFeared,       fs.FontSizeFeared       * 1.10, FontWeights.Bold,      3.5,   0, FloatUp: true),
             _                        => new(Colors.White,                      Colors.Black,                      16,                      20,                             FontWeights.Normal, 2.2,   0),
         };
     }

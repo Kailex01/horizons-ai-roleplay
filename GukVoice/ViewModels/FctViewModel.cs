@@ -11,7 +11,7 @@ public enum FctCategory
     SpellOut,  SpellIn,
     HealFriendly, HealEnemy,
     LevelUp,   ExpGain,
-    Stunned,
+    Stunned,   Feared,
 }
 
 public record FctSpawnArgs(FctCategory Category, string Text);
@@ -140,6 +140,11 @@ public class FctViewModel : INotifyPropertyChanged
         get => S.ShowStunned;
         set { S.ShowStunned = value; Save(); OnPropertyChanged(); }
     }
+    public bool ShowFeared
+    {
+        get => S.ShowFeared;
+        set { S.ShowFeared = value; Save(); OnPropertyChanged(); }
+    }
 
     // ── Origin / debug ────────────────────────────────────────────────────────
 
@@ -245,6 +250,11 @@ public class FctViewModel : INotifyPropertyChanged
         get => S.FontSizeStunned;
         set { S.FontSizeStunned = value; Save(); OnPropertyChanged(); }
     }
+    public double FontSizeFeared
+    {
+        get => S.FontSizeFeared;
+        set { S.FontSizeFeared = value; Save(); OnPropertyChanged(); }
+    }
 
     // ── Event routing ──────────────────────────────────────────────────────────
 
@@ -287,6 +297,9 @@ public class FctViewModel : INotifyPropertyChanged
             CombatEventType.Stunned
                 => (FctCategory.Stunned, "STUNNED"),
 
+            CombatEventType.Feared
+                => (FctCategory.Feared, "FEARED"),
+
             _ => (default, null),
         };
 
@@ -310,6 +323,7 @@ public class FctViewModel : INotifyPropertyChanged
     public SolidColorBrush BrushLevelUp      => MakeBrush(S.ColorLevelUp);
     public SolidColorBrush BrushExpGain      => MakeBrush(S.ColorExpGain);
     public SolidColorBrush BrushStunned      => MakeBrush(S.ColorStunned);
+    public SolidColorBrush BrushFeared       => MakeBrush(S.ColorFeared);
 
     // ── Stroke color brushes ──────────────────────────────────────────────────
     public SolidColorBrush StrokeBrushDamageOut    => MakeBrush(S.StrokeDamageOut);
@@ -323,6 +337,7 @@ public class FctViewModel : INotifyPropertyChanged
     public SolidColorBrush StrokeBrushLevelUp      => MakeBrush(S.StrokeLevelUp);
     public SolidColorBrush StrokeBrushExpGain      => MakeBrush(S.StrokeExpGain);
     public SolidColorBrush StrokeBrushStunned      => MakeBrush(S.StrokeStunned);
+    public SolidColorBrush StrokeBrushFeared       => MakeBrush(S.StrokeFeared);
 
     public string GetColorHex(FctCategory cat) => cat switch
     {
@@ -337,6 +352,7 @@ public class FctViewModel : INotifyPropertyChanged
         FctCategory.LevelUp      => S.ColorLevelUp,
         FctCategory.ExpGain      => S.ColorExpGain,
         FctCategory.Stunned      => S.ColorStunned,
+        FctCategory.Feared       => S.ColorFeared,
         _                        => "#FFFFFF",
     };
 
@@ -353,6 +369,7 @@ public class FctViewModel : INotifyPropertyChanged
         FctCategory.LevelUp      => S.StrokeLevelUp,
         FctCategory.ExpGain      => S.StrokeExpGain,
         FctCategory.Stunned      => S.StrokeStunned,
+        FctCategory.Feared       => S.StrokeFeared,
         _                        => "#000000",
     };
 
@@ -371,6 +388,7 @@ public class FctViewModel : INotifyPropertyChanged
             case FctCategory.LevelUp:      S.ColorLevelUp      = hex; OnPropertyChanged(nameof(BrushLevelUp));      break;
             case FctCategory.ExpGain:      S.ColorExpGain      = hex; OnPropertyChanged(nameof(BrushExpGain));      break;
             case FctCategory.Stunned:      S.ColorStunned      = hex; OnPropertyChanged(nameof(BrushStunned));      break;
+            case FctCategory.Feared:       S.ColorFeared       = hex; OnPropertyChanged(nameof(BrushFeared));       break;
         }
         Save();
     }
@@ -390,6 +408,7 @@ public class FctViewModel : INotifyPropertyChanged
             case FctCategory.LevelUp:      S.StrokeLevelUp      = hex; OnPropertyChanged(nameof(StrokeBrushLevelUp));      break;
             case FctCategory.ExpGain:      S.StrokeExpGain      = hex; OnPropertyChanged(nameof(StrokeBrushExpGain));      break;
             case FctCategory.Stunned:      S.StrokeStunned      = hex; OnPropertyChanged(nameof(StrokeBrushStunned));      break;
+            case FctCategory.Feared:       S.StrokeFeared       = hex; OnPropertyChanged(nameof(StrokeBrushFeared));       break;
         }
         Save();
     }
@@ -413,6 +432,7 @@ public class FctViewModel : INotifyPropertyChanged
         FctCategory.LevelUp      => S.ShowLevelUp,
         FctCategory.ExpGain      => S.ShowExpGain,
         FctCategory.Stunned      => S.ShowStunned,
+        FctCategory.Feared       => S.ShowFeared,
         _                        => false,
     };
 
