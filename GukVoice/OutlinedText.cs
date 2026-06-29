@@ -40,9 +40,16 @@ public sealed class OutlinedText : FrameworkElement
             new FrameworkPropertyMetadata(1.5,
                 FrameworkPropertyMetadataOptions.AffectsRender));
 
+    public static readonly DependencyProperty FontStyleProperty =
+        DependencyProperty.Register(nameof(FontStyle), typeof(FontStyle), typeof(OutlinedText),
+            new FrameworkPropertyMetadata(FontStyles.Normal,
+                FrameworkPropertyMetadataOptions.AffectsRender |
+                FrameworkPropertyMetadataOptions.AffectsMeasure));
+
     public string     Text            { get => (string)GetValue(TextProperty);            set => SetValue(TextProperty, value); }
     public double     FontSize        { get => (double)GetValue(FontSizeProperty);         set => SetValue(FontSizeProperty, value); }
     public FontWeight FontWeight      { get => (FontWeight)GetValue(FontWeightProperty);   set => SetValue(FontWeightProperty, value); }
+    public FontStyle  FontStyle       { get => (FontStyle)GetValue(FontStyleProperty);     set => SetValue(FontStyleProperty, value); }
     public Brush      Foreground      { get => (Brush)GetValue(ForegroundProperty);        set => SetValue(ForegroundProperty, value); }
     public Brush      StrokeBrush     { get => (Brush)GetValue(StrokeBrushProperty);       set => SetValue(StrokeBrushProperty, value); }
     public double     StrokeThickness { get => (double)GetValue(StrokeThicknessProperty); set => SetValue(StrokeThicknessProperty, value); }
@@ -59,7 +66,7 @@ public sealed class OutlinedText : FrameworkElement
         var src      = PresentationSource.FromVisual(this);
         double ppd   = src?.CompositionTarget?.TransformToDevice.M11 ?? 1.0;
         var family   = new FontFamily(_fontFamilyName);
-        var typeface = new Typeface(family, FontStyles.Normal, FontWeight, FontStretches.Normal);
+        var typeface = new Typeface(family, FontStyle, FontWeight, FontStretches.Normal);
         return new FormattedText(
             Text ?? "",
             CultureInfo.InvariantCulture,

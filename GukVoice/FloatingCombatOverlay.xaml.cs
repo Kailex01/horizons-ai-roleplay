@@ -108,12 +108,17 @@ public partial class FloatingCombatOverlay : Window
         {
             var style = GetStyle(args.Category);
 
+            var s   = AppConfig.Current.Fct;
+            // If global Bold is on, bump Normal → Bold but leave heavier weights (Bold, ExtraBold) alone
+            var weight = (s.GlobalBold && style.Weight == FontWeights.Normal) ? FontWeights.Bold : style.Weight;
+
             var ot = new OutlinedText
             {
                 Text            = args.Text,
                 FontSize        = style.StartSize,
-                FontWeight      = style.Weight,
-                FontFamilyName  = AppConfig.Current.Fct.FontFamily,
+                FontWeight      = weight,
+                FontStyle       = s.GlobalItalic ? FontStyles.Italic : FontStyles.Normal,
+                FontFamilyName  = s.FontFamily,
                 Foreground      = new SolidColorBrush(style.Color),
                 StrokeBrush     = new SolidColorBrush(style.StrokeColor),
                 StrokeThickness = 1.5,
@@ -123,12 +128,11 @@ public partial class FloatingCombatOverlay : Window
             double textW = ot.DesiredSize.Width;
             double textH = ot.DesiredSize.Height;
 
-            var s = AppConfig.Current.Fct;
             double cx = OverlayCanvas.ActualWidth  / 2.0 + s.OriginOffsetX;
             double cy = OverlayCanvas.ActualHeight / 2.0 + s.OriginOffsetY;
 
             // Small scatter perpendicular to travel direction + configurable angle variance
-            int    spread   = AppConfig.Current.Fct.AngleSpread;
+            int    spread   = s.AngleSpread;
             double scatter  = _rng.Next(-20, 20);
             double angleVar = spread > 0 ? _rng.Next(-spread, spread + 1) : 0;
             double rad      = (style.AngleDeg + angleVar) * Math.PI / 180.0;

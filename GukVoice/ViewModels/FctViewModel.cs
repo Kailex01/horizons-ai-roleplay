@@ -113,6 +113,22 @@ public class FctViewModel : INotifyPropertyChanged
         get => S.AngleSpread;
         set { S.AngleSpread = Math.Max(0, value); Save(); OnPropertyChanged(); }
     }
+    public bool GlobalBold
+    {
+        get => S.GlobalBold;
+        set { S.GlobalBold = value; Save(); OnPropertyChanged(); }
+    }
+    public bool GlobalItalic
+    {
+        get => S.GlobalItalic;
+        set { S.GlobalItalic = value; Save(); OnPropertyChanged(); }
+    }
+
+    public static IReadOnlyList<string> SystemFontNames { get; } =
+        Fonts.SystemFontFamilies
+             .Select(f => f.Source)
+             .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
+             .ToList();
 
     // ── Per-category font sizes ───────────────────────────────────────────────
 

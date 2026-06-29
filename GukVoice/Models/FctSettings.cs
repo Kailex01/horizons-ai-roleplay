@@ -20,8 +20,10 @@ public class FctSettings
     [JsonPropertyName("debug_origin")] public bool ShowDebugOrigin { get; set; } = false;
 
     // ── Global text appearance ────────────────────────────────────────────────
-    [JsonPropertyName("font_family")]  public string FontFamily    { get; set; } = "Segoe UI";
+    [JsonPropertyName("font_family")]  public string FontFamily   { get; set; } = "Segoe UI";
     [JsonPropertyName("angle_spread")] public int    AngleSpread  { get; set; } = 10;
+    [JsonPropertyName("global_bold")]  public bool   GlobalBold   { get; set; } = false;
+    [JsonPropertyName("global_italic")]public bool   GlobalItalic { get; set; } = false;
 
     // ── Per-category starting font sizes (px) ─────────────────────────────────
     [JsonPropertyName("fs_damage_out")]    public double FontSizeDamageOut    { get; set; } = 18;

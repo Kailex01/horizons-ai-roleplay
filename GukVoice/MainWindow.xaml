@@ -277,14 +277,28 @@
                                         <TextBlock Text="Font" Width="58"
                                                    Foreground="{StaticResource SubtextBrush}" FontSize="11"
                                                    VerticalAlignment="Center"/>
-                                        <TextBox Text="{Binding Fct.FontFamily, UpdateSourceTrigger=PropertyChanged}"
-                                                 Width="150" FontSize="12" Padding="4,3"
-                                                 Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
-                                                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                                                 ToolTip="Any installed Windows font name, e.g. Impact, Arial, Consolas"/>
-                                        <TextBlock Text="Spread" Width="52"
+                                        <ComboBox IsEditable="True"
+                                                  ItemsSource="{Binding Fct.SystemFontNames}"
+                                                  Text="{Binding Fct.FontFamily, UpdateSourceTrigger=PropertyChanged}"
+                                                  Width="180" MaxDropDownHeight="220" FontSize="12"
+                                                  Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                  BorderBrush="{StaticResource BorderBrush}"
+                                                  ToolTip="Pick from list or type any installed font name"/>
+                                        <CheckBox IsChecked="{Binding Fct.GlobalBold}"
+                                                  VerticalAlignment="Center" Margin="14,0,4,0"/>
+                                        <TextBlock Text="Bold" FontWeight="Bold" FontSize="12"
+                                                   Foreground="{StaticResource TextBrush}"
+                                                   VerticalAlignment="Center"/>
+                                        <CheckBox IsChecked="{Binding Fct.GlobalItalic}"
+                                                  VerticalAlignment="Center" Margin="12,0,4,0"/>
+                                        <TextBlock Text="Italic" FontStyle="Italic" FontSize="12"
+                                                   Foreground="{StaticResource TextBrush}"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,4">
+                                        <TextBlock Text="Spread" Width="58"
                                                    Foreground="{StaticResource SubtextBrush}" FontSize="11"
-                                                   VerticalAlignment="Center" Margin="16,0,0,0"/>
+                                                   VerticalAlignment="Center"/>
                                         <TextBox Text="{Binding Fct.AngleSpread, UpdateSourceTrigger=PropertyChanged}"
                                                  Width="40" FontSize="12" Padding="4,3"
                                                  Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
