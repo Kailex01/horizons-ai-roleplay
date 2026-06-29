@@ -120,7 +120,8 @@ public static class EqLogParser
 
     public record ParseResult(LogEvent? LogEvent, CombatEvent? CombatEvent);
 
-    public static ParseResult Parse(string rawLine, string playerName)
+    public static ParseResult Parse(string rawLine, string playerName,
+                                     HashSet<string>? groupMembers = null)
     {
         var m = RxLine.Match(rawLine);
         if (!m.Success) return new(null, null);
@@ -130,7 +131,7 @@ public static class EqLogParser
 
         // Run both parsers — some lines (exp, level-up) may return both so the
         // activity feed and FCT overlay both get notified.
-        var combat   = TryCombat(body, time, playerName);
+        var combat   = TryCombat(body, time, playerName, groupMembers);
         var logEvent = TryLogEvent(body, time, playerName);
         return new(logEvent, combat);
     }
@@ -170,7 +171,8 @@ public static class EqLogParser
 
     // ── Combat parsing ─────────────────────────────────────────────────────────
 
-    private static CombatEvent? TryCombat(string body, DateTime time, string playerName)
+    private static CombatEvent? TryCombat(string body, DateTime time, string playerName,
+                                            HashSet<string>? groupMembers = null)
     {
         Match m;
 
@@ -256,6 +258,11 @@ public static class EqLogParser
                 if (target == playerName)
                     return new CombatEvent { Type = CombatEventType.DamageTaken, Time = time,
                                              Actor = actor, Damage = dmg, Source = DamageSource.Spell };
+                // Enabled group member hitting a mob → show as SpellOut
+                if (groupMembers != null && groupMembers.Contains(actor) && target != playerName)
+                    return new CombatEvent { Type = CombatEventType.DamageDealt, Time = time,
+                                             Actor = actor, Target = target, Damage = dmg,
+                                             Source = DamageSource.Spell };
             }
         }
 

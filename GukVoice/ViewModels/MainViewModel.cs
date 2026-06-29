@@ -140,7 +140,8 @@ public class MainViewModel : INotifyPropertyChanged, IDisposable
 
     private void OnLineReceived(string line)
     {
-        var result = EqLogParser.Parse(line, AppConfig.Current.PlayerName);
+        var result = EqLogParser.Parse(line, AppConfig.Current.PlayerName,
+                                        Fct.GetEnabledGroupMemberNames());
 
         if (result.CombatEvent != null)
         {

@@ -321,6 +321,54 @@
                                 </StackPanel>
                             </Border>
 
+                            <!-- GROUP MEMBERS section -->
+                            <TextBlock Text="GROUP MEMBERS" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
+                            <Border Background="{StaticResource SurfaceBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1" CornerRadius="4"
+                                    Padding="14,10" Margin="0,0,0,14">
+                                <StackPanel>
+                                    <TextBlock Text="Show FCT for these characters (their spell / non-melee hits)"
+                                               Foreground="{StaticResource SubtextBrush}" FontSize="11"
+                                               Margin="0,0,0,10"/>
+                                    <!-- Member toggle list -->
+                                    <ItemsControl ItemsSource="{Binding Fct.GroupMembers}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="0,3">
+                                                    <CheckBox IsChecked="{Binding Enabled}"
+                                                              VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                    <TextBlock Text="{Binding Name}"
+                                                               Foreground="{StaticResource TextBrush}"
+                                                               FontSize="13" Width="160"
+                                                               VerticalAlignment="Center"/>
+                                                    <Button Content="×" FontSize="14" FontWeight="Bold"
+                                                            Tag="{Binding Name}"
+                                                            Click="OnRemoveGroupMember"
+                                                            Background="Transparent"
+                                                            BorderThickness="0"
+                                                            Foreground="{StaticResource SubtextBrush}"
+                                                            Cursor="Hand" Padding="4,0"
+                                                            VerticalAlignment="Center"
+                                                            ToolTip="Remove"/>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <!-- Add member row -->
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <TextBox x:Name="NewMemberNameBox"
+                                                 Width="160" FontSize="12" Padding="4,3"
+                                                 Background="#1E1E2E" Foreground="{StaticResource TextBrush}"
+                                                 BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                                 ToolTip="Character name to track"/>
+                                        <Button Content="Add" Margin="8,0,0,0" Padding="10,3"
+                                                Click="OnAddGroupMember"
+                                                FontSize="12"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
                             <!-- DAMAGE section -->
                             <TextBlock Text="DAMAGE" Style="{StaticResource FieldLabel}" Margin="0,0,0,8"/>
                             <Border Background="{StaticResource SurfaceBrush}"

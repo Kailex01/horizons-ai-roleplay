@@ -73,6 +73,22 @@ public partial class MainWindow : Window
         if (!r.IsEmpty) _overlay.UpdatePosition(r);
     }
 
+    // ── Group member add / remove ─────────────────────────────────────────────
+
+    private void OnAddGroupMember(object sender, RoutedEventArgs e)
+    {
+        var name = NewMemberNameBox.Text.Trim();
+        if (string.IsNullOrEmpty(name)) return;
+        _vm.Fct.AddGroupMember(name);
+        NewMemberNameBox.Clear();
+    }
+
+    private void OnRemoveGroupMember(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button btn && btn.Tag is string name)
+            _vm.Fct.RemoveGroupMember(name);
+    }
+
     // ── Color picker ──────────────────────────────────────────────────────────
 
     private void OnColorSwatchClick(object sender, RoutedEventArgs e)

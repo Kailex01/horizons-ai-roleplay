@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Windows.Media;
 using GukVoice.Models;
 
@@ -21,6 +22,38 @@ public class FctViewModel : INotifyPropertyChanged
     public event Action?              OriginChanged;
 
     private FctSettings S => AppConfig.Current.Fct;
+
+    // ── Group member tracking ─────────────────────────────────────────────────
+
+    public ObservableCollection<TrackedMemberViewModel> GroupMembers { get; } = new();
+
+    public FctViewModel()
+    {
+        foreach (var m in AppConfig.Current.Fct.GroupMembers)
+            GroupMembers.Add(new TrackedMemberViewModel(m, Save));
+    }
+
+    public void AddGroupMember(string name)
+    {
+        name = name.Trim();
+        if (string.IsNullOrEmpty(name)) return;
+        if (S.GroupMembers.Any(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) return;
+        var model = new TrackedMember { Name = name, Enabled = true };
+        S.GroupMembers.Add(model);
+        GroupMembers.Add(new TrackedMemberViewModel(model, Save));
+        Save();
+    }
+
+    public void RemoveGroupMember(string name)
+    {
+        S.GroupMembers.RemoveAll(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        var vm = GroupMembers.FirstOrDefault(m => m.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (vm != null) GroupMembers.Remove(vm);
+        Save();
+    }
+
+    public HashSet<string> GetEnabledGroupMemberNames() =>
+        S.GroupMembers.Where(m => m.Enabled).Select(m => m.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
 
     // ── Master toggle ─────────────────────────────────────────────────────────
 
