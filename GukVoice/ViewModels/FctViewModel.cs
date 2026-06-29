@@ -271,7 +271,7 @@ public class FctViewModel : INotifyPropertyChanged
                 => (FctCategory.LevelUp, string.IsNullOrEmpty(ev.Label) ? "DING!" : $"DING! {ev.Label}"),
 
             CombatEventType.ExperienceGain
-                => (FctCategory.ExpGain, "exp"),
+                => (FctCategory.ExpGain, string.IsNullOrEmpty(ev.Label) ? "exp" : $"{ev.Label}% exp!"),
 
             _ => (default, null),
         };

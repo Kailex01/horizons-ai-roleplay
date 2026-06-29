@@ -25,7 +25,7 @@ public static class EqLogParser
         @"^You have entered (.+)\.$", RegexOptions.Compiled);
 
     private static readonly Regex RxExp = new(
-        @"^You (?:have )?gained (?:\(\d+\) )?(?:party |raid )?experience",
+        @"^You (?:have )?gained (?:\(\d+\) )?(?:party |raid )?experience[^(]*(?:\(([0-9.]+)%\))?",
         RegexOptions.Compiled);
 
     private static readonly Regex RxLoot = new(
@@ -214,8 +214,10 @@ public static class EqLogParser
         }
 
         // ── Experience gain ────────────────────────────────────────────────────
-        if (RxExp.IsMatch(body))
-            return new CombatEvent { Type = CombatEventType.ExperienceGain, Time = time };
+        m = RxExp.Match(body);
+        if (m.Success)
+            return new CombatEvent { Type = CombatEventType.ExperienceGain, Time = time,
+                                     Label = m.Groups[1].Success ? m.Groups[1].Value : "" };
 
         // ── Player death ───────────────────────────────────────────────────────
         m = RxPlayerDied.Match(body);
